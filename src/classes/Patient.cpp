@@ -20,7 +20,7 @@ bool isValidDate(const Date &date)
 }
 
 Patient::Patient(const std::string &firstName, const std::string &lastName, const Date &dob, const Address &address)
-    : first_name(firstName), last_name(lastName), dob(dob), address(address) {}
+    : firstName(firstName), lastName(lastName), dob(dob), address(address) {}
 
 // Setters
 void Patient::setFirstName(const string &fname)
@@ -28,11 +28,11 @@ void Patient::setFirstName(const string &fname)
     if (fname.empty() || fname.length() > 20)
     {
         std::cerr << "Invalid first name. Must be 1-20 characters.\n";
-        first_name = "Unknown";
+        firstName = "Unknown";
     }
     else
     {
-        first_name = fname;
+        firstName = fname;
     }
 }
 
@@ -41,11 +41,11 @@ void Patient::setLastName(const string &lname)
     if (lname.empty() || lname.length() > 20)
     {
         std::cerr << "Invalid last name. Must be 1-20 characters.\n";
-        last_name = "Unknown";
+        lastName = "Unknown";
     }
     else
     {
-        last_name = lname;
+        lastName = lname;
     }
 }
 
@@ -68,12 +68,54 @@ void Patient::setAddress(const Address &addr)
 }
 
 // Getters
-string Patient::getFirstName() const { return first_name; }
-string Patient::getLastName() const { return last_name; }
+string Patient::getFirstName() const { return firstName; }
+string Patient::getLastName() const { return lastName; }
 Date Patient::getDOB() const { return dob; }
 Address Patient::getAddress() const { return address; }
 
 void Patient::save()
 {
-    cout << "Saved!"; // Yeh toh hyderabadi karega
+    cout << "Saved!"; // Yeh toh hyderabadi karega // Update: abay yaar ab mujhy hee karna parega
+}
+
+vector<Patient> Patient::fetchAll()
+{
+    ifstream file("patients.csv");
+
+    if (!file.is_open())
+    {
+        cerr << "Error: Unable to open file." << endl;
+        return {};
+    }
+
+    string line;
+    vector<Patient> pats;
+
+    getline(file, line); // to skip header line
+    while (getline(file, line))
+    {
+        stringstream lineStream(line);
+
+        string firstName, lastName;
+        string dob_dStr, dob_mStr, dob_yStr;
+        string add_street, add_city, add_state, add_zipCode, add_country;
+
+        getline(lineStream, firstName, ',');
+        getline(lineStream, lastName, ',');
+        getline(lineStream, dob_dStr, ',');
+        getline(lineStream, dob_mStr, ',');
+        getline(lineStream, dob_yStr, ',');
+        getline(lineStream, add_street, ',');
+        getline(lineStream, add_city, ',');
+        getline(lineStream, add_state, ',');
+        getline(lineStream, add_zipCode, ',');
+        getline(lineStream, add_country, ',');
+
+        Patient p(firstName, lastName, Date{stoi(dob_dStr), stoi(dob_mStr), stoi(dob_yStr)}, Address{add_street, add_city, add_state, add_zipCode, add_country});
+
+        pats.push_back(p);
+    }
+
+    file.close();
+    return pats;
 }

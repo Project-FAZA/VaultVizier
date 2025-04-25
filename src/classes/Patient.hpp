@@ -2,6 +2,10 @@
 #define PAT_HPP
 
 #include <iostream>
+#include <fstream>
+#include <string>
+#include <sstream>
+#include <vector>
 
 using namespace std;
 
@@ -26,8 +30,8 @@ struct Address
 class Patient
 {
 private:
-    string first_name;
-    string last_name;
+    string firstName;
+    string lastName;
     Date dob;
     Address address;
 
@@ -49,6 +53,7 @@ public:
 
     // adds/updates to actual database;
     void save();
+    static vector<Patient> fetchAll();
 };
 
 #endif
