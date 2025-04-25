@@ -125,7 +125,7 @@ void Dashboard(ScreenInteractive &screen, ScreenStatus *status)
     // bool darkMode = false;
     bool compactView = true;
     auto tab3 = Container::Vertical({
-        Checkbox("Dark Mode", &GlobalVar::darkMode),
+        Checkbox("Dark Mode (Light Mode not recommended)", &GlobalVar::darkMode),
         Checkbox("Compact View", &compactView),
     });
 
