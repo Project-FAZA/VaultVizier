@@ -17,6 +17,7 @@ project(VaultVizier LANGUAGES CXX VERSION 1.0.0)
 file(GLOB SOURCES
     "src/main.cpp"               # Add main.cpp
     "src/classes/*.cpp"          # Add all .cpp files in the src/classes folder
+    "src/components/*.cpp"          # Add all .cpp files in the src/components folder
 )
 
 # Specify include directories (where headers are located)
