@@ -10,12 +10,12 @@ void Login(ScreenInteractive &screen, ScreenStatus *status)
     string msg = "Welcome";
 
     // Input fields
-    auto username_input = Input(&username, "Username", inputOption());
-    auto password_input = Input(&password, "Password", inputOption(true));
+    auto usernameInput = Input(&username, "Username", inputOption());
+    auto passwordInput = Input(&password, "Password", inputOption(true));
 
     // Button to trigger login
-    auto login_button = Button("Log In", [&]
-                               {
+    auto loginButton = Button("Log In", [&]
+                              {
         if (!username.empty() && !password.empty()) {
             if (!AuthUser::alreadyExists(username)) msg = "User does not exist";
             else if (AuthUser::verifyPassword(username, password))
@@ -26,11 +26,13 @@ void Login(ScreenInteractive &screen, ScreenStatus *status)
             else msg = "Invalid Password";
         } });
 
+    auto createAccountButton = Button("Create An Account", [&] {});
+
     // Container for input and button
     auto container = Container::Vertical({
-        username_input,
-        password_input,
-        login_button,
+        usernameInput,
+        passwordInput,
+        Container::Horizontal({loginButton, createAccountButton}),
     });
 
     // Final UI layout
@@ -38,10 +40,10 @@ void Login(ScreenInteractive &screen, ScreenStatus *status)
                         { return vbox({
                                      text(msg) | bold | center,
                                      separator(),
-                                     hbox(text("Username: "), username_input->Render()),
-                                     hbox(text("Password: "), password_input->Render()),
+                                     hbox(text("Username: "), usernameInput->Render()),
+                                     hbox(text("Password: "), passwordInput->Render()),
                                      separator(),
-                                     login_button->Render() | center,
+                                     hbox(loginButton->Render(), filler(), createAccountButton->Render()) | flex | center,
                                  }) |
                                  flex |
                                  borderRounded |
