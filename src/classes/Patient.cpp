@@ -19,6 +19,68 @@ bool isValidDate(const Date &date)
     return date.d <= daysInMonth[date.m - 1];
 }
 
+string validateField(const string& field, int maxLength, const string& fieldName)
+{
+    if (field.empty() || field.length() > maxLength)
+    {
+        std::cerr << "Invalid " << fieldName << ".\n";
+        return "Unknown";
+    }
+    return field;
+}
+
+// digit checker
+bool isAllDigits(const string& s)
+{
+    for (char c : s)  
+    {
+        if (!isdigit(c))
+            return false; 
+    }
+    return true;
+}
+
+bool validatePhoneNumber(const string& phone)
+{
+    string digitsOnly;
+    int start = 0, dashes = 0;
+    if(phone[0] == '+')
+    {
+        start = 1;
+    }
+
+    for(int i = start; i < phone.length(); i++)
+    {
+        if (phone[i] == '-')
+        {
+            dashes ++;
+            if(dashes > 1)
+            {
+                return false; //check for consecutive dashes
+            }
+
+            continue;
+        }
+        if (!isdigit(phone[i]))
+        {
+            return false;
+        }
+        else
+        {
+            digitsOnly += phone[i];
+            dashes = 0;
+        }
+    }
+
+    if(digitsOnly.length() < 10 || digitsOnly.length() > 15)
+    {
+        return false;
+    }
+
+    return true;
+
+}
+
 Patient::Patient(const std::string &firstName, const std::string &lastName, const Date &dob, const Address &address)
     : firstName(firstName), lastName(lastName), dob(dob), address(address) {}
 
@@ -64,7 +126,78 @@ void Patient::setDOB(const Date &date)
 
 void Patient::setAddress(const Address &addr)
 {
-    address = addr; // You could add validation here too if needed
+    //Zain Bhai edit validating address
+    address.street = validateField(addr.street, 100, "Street name");
+    address.city = validateField(addr.city, 25, "City name");
+    address.state = validateField(addr.state, 25, "State name");
+    address.country = validateField(addr.country, 25, "Country name");
+    if(addr.zipCode.empty() || addr.zipCode.length() != 5 || !isAllDigits(addr.zipCode))
+    {   
+        std::cerr << "Invalid Zip Code. It must be exactly 5 digits.\n";
+        address.zipCode = "Unknown";
+    }
+    else
+    {
+        address.zipCode = addr.zipCode;
+    }
+    
+}
+
+void Patient::setGender(const bool &sex)
+{
+    gender = sex;
+}
+
+void Patient::setPhoneNumber(const string &num)
+{
+    if(validatePhoneNumber(num))
+    {
+        phoneNumber = num;
+    }
+    else
+    {
+        std::cerr << "Invalid phone number.\n Expected format: +92-300-1234567 or 923001234567.\n Setting to default.\n";
+        phoneNumber = "+00-000-000000";
+    }
+}
+
+void Patient::setHeight(const float &h)
+{
+    if(h <= 0 || h >= 9)
+    {
+        std::cerr << "Invalid height value. Setting to 0.\n";
+        height = 0.0f;
+    }
+    else
+    {
+        height = h;
+    }
+}
+
+void Patient::setWeight(const float &w)
+{
+    if(w <= 0 || w > 200)
+    {
+        std::cerr << "Invalid weight value. Setting to 0.\n";
+        weight = 0.0f;
+    }
+    else
+    {
+        weight = w;
+    }
+}
+
+void Patient::setMaritalStatus(const int &married)
+{
+    if(married >= -1 && married <= 1)
+    {
+        maritalStatus = married;
+    }
+    else
+    {
+        std::cerr << "Invalid Marital Status. Setting to single\n";
+        maritalStatus = 0;
+    }
 }
 
 // Getters
@@ -72,6 +205,11 @@ string Patient::getFirstName() const { return firstName; }
 string Patient::getLastName() const { return lastName; }
 Date Patient::getDOB() const { return dob; }
 Address Patient::getAddress() const { return address; }
+bool Patient::getGender() const { return gender; }
+string Patient::getPhoneNumber() const { return phoneNumber;}
+float Patient::getHeight() const { return height; }
+float Patient::getWeight() const { return weight; }
+int Patient::getMaritalStatus() const { return maritalStatus;} 
 
 void Patient::save()
 {
