@@ -1,4 +1,5 @@
 #include "components.hpp"
+#include "../classes/AuthUser.hpp"
 
 using namespace std;
 
@@ -6,6 +7,7 @@ void Login(ScreenInteractive &screen, ScreenStatus *status)
 {
     string username;
     string password;
+    string msg = "Welcome";
 
     // Input fields
     auto username_input = Input(&username, "Username", inputOption());
@@ -15,8 +17,13 @@ void Login(ScreenInteractive &screen, ScreenStatus *status)
     auto login_button = Button("Log In", [&]
                                {
         if (!username.empty() && !password.empty()) {
-            *status = DASHBOARD;
-            screen.Exit();
+            if (!AuthUser::alreadyExists(username)) msg = "User does not exist";
+            else if (AuthUser::verifyPassword(username, password))
+            {
+                *status = DASHBOARD;
+                screen.Exit();
+            }
+            else msg = "Invalid Password";
         } });
 
     // Container for input and button
@@ -29,7 +36,7 @@ void Login(ScreenInteractive &screen, ScreenStatus *status)
     // Final UI layout
     auto app = Renderer(container, [&]
                         { return vbox({
-                                     text("Welcome") | bold | center,
+                                     text(msg) | bold | center,
                                      separator(),
                                      hbox(text("Username: "), username_input->Render()),
                                      hbox(text("Password: "), password_input->Render()),
