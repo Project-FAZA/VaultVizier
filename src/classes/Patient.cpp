@@ -223,6 +223,18 @@ string Patient::toCSV()
            address.country;
 }
 
+string Patient::toCSV()
+{
+    return firstName + "," +
+           lastName + "," +
+           to_string(dob.d) + "," + to_string(dob.m) + "," + to_string(dob.y) + "," +
+           address.street + "," +
+           address.city + "," +
+           address.state + "," +
+           address.zipCode + "," +
+           address.country;
+}
+
 void Patient::save()
 {
     ofstream file;
