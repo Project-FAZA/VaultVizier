@@ -10,17 +10,24 @@ void Dashboard(ScreenInteractive &screen, ScreenStatus *status)
     /* ====================================================================================== */
     /* ADD PT                                                                                 */
     /* ====================================================================================== */
-    std::string msg = "";
+    string msg = "";
 
-    std::string firstName, lastName;
-    std::string dobDay, dobMonth, dobYear;
-    std::string street, city, state, zipCode, country;
+    string firstName, lastName;
+
+    string dobDay, dobMonth, dobYear;
+
+    string street, city, state, zipCode, country;
+
+    vector<string> genderList = {"Male", "Female"};
+    int genderSelected = 0;
 
     Patient patient("", "", Date{0, 0, 0}, Address{"", "", "", "", ""});
 
     // Input fields
     auto firstNameInput = Input(&firstName, "First Name", inputOption());
     auto lastNameInput = Input(&lastName, "Last Name", inputOption());
+    auto genderInput = Toggle(&genderList, &genderSelected);
+
     auto dobDayInput = Input(&dobDay, "Day", inputOption());
     auto dobMonthInput = Input(&dobMonth, "Month", inputOption());
     auto dobYearInput = Input(&dobYear, "Year", inputOption());
@@ -54,6 +61,7 @@ void Dashboard(ScreenInteractive &screen, ScreenStatus *status)
 
             patient.setFirstName(firstName);
             patient.setLastName(lastName);
+            patient.setGender(!genderSelected);
             patient.setDOB(dob);
             patient.setAddress(Address{street, city, state, zipCode, country});
 
@@ -67,7 +75,7 @@ void Dashboard(ScreenInteractive &screen, ScreenStatus *status)
 
     // Create layout container
     auto container = Container::Vertical({firstNameInput,
-                                          lastNameInput,
+                                          lastNameInput, genderInput,
                                           Container::Horizontal({dobDayInput, dobMonthInput, dobYearInput}),
                                           streetInput, cityInput, stateInput, zipInput, countryInput,
                                           submitButton});
@@ -77,11 +85,11 @@ void Dashboard(ScreenInteractive &screen, ScreenStatus *status)
                                { return vbox({
                                             text("Patient Registration Form") | bold | center | border,
                                             separator(),
-                                            vbox({
-                                                text("Personal Info") | bold,
-                                                firstNameInput->Render(),
-                                                lastNameInput->Render(),
-                                            }) | borderRounded |
+                                            vbox({text("Personal Info") | bold,
+                                                  firstNameInput->Render(),
+                                                  lastNameInput->Render(),
+                                                  genderInput->Render()}) |
+                                                borderRounded |
                                                 flex,
 
                                             vbox({
