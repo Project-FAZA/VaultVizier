@@ -19,7 +19,7 @@ bool isValidDate(const Date &date)
     return date.d <= daysInMonth[date.m - 1];
 }
 
-string validateField(const string& field, int maxLength, const string& fieldName)
+string validateField(const string &field, int maxLength, const string &fieldName)
 {
     if (field.empty() || field.length() > maxLength)
     {
@@ -30,33 +30,33 @@ string validateField(const string& field, int maxLength, const string& fieldName
 }
 
 // digit checker
-bool isAllDigits(const string& s)
+bool isAllDigits(const string &s)
 {
-    for (char c : s)  
+    for (char c : s)
     {
         if (!isdigit(c))
-            return false; 
+            return false;
     }
     return true;
 }
 
-bool validatePhoneNumber(const string& phone)
+bool validatePhoneNumber(const string &phone)
 {
     string digitsOnly;
     int start = 0, dashes = 0;
-    if(phone[0] == '+')
+    if (phone[0] == '+')
     {
         start = 1;
     }
 
-    for(int i = start; i < phone.length(); i++)
+    for (int i = start; i < phone.length(); i++)
     {
         if (phone[i] == '-')
         {
-            dashes ++;
-            if(dashes > 1)
+            dashes++;
+            if (dashes > 1)
             {
-                return false; //check for consecutive dashes
+                return false; // check for consecutive dashes
             }
 
             continue;
@@ -72,13 +72,12 @@ bool validatePhoneNumber(const string& phone)
         }
     }
 
-    if(digitsOnly.length() < 10 || digitsOnly.length() > 15)
+    if (digitsOnly.length() < 10 || digitsOnly.length() > 15)
     {
         return false;
     }
 
     return true;
-
 }
 
 Patient::Patient(const std::string &firstName, const std::string &lastName, const Date &dob, const Address &address)
@@ -126,13 +125,13 @@ void Patient::setDOB(const Date &date)
 
 void Patient::setAddress(const Address &addr)
 {
-    //Zain Bhai edit validating address
+    // Zain Bhai edit validating address
     address.street = validateField(addr.street, 100, "Street name");
     address.city = validateField(addr.city, 25, "City name");
     address.state = validateField(addr.state, 25, "State name");
     address.country = validateField(addr.country, 25, "Country name");
-    if(addr.zipCode.empty() || addr.zipCode.length() != 5 || !isAllDigits(addr.zipCode))
-    {   
+    if (addr.zipCode.empty() || addr.zipCode.length() != 5 || !isAllDigits(addr.zipCode))
+    {
         std::cerr << "Invalid Zip Code. It must be exactly 5 digits.\n";
         address.zipCode = "Unknown";
     }
@@ -140,7 +139,6 @@ void Patient::setAddress(const Address &addr)
     {
         address.zipCode = addr.zipCode;
     }
-    
 }
 
 void Patient::setGender(const bool &sex)
@@ -150,7 +148,7 @@ void Patient::setGender(const bool &sex)
 
 void Patient::setPhoneNumber(const string &num)
 {
-    if(validatePhoneNumber(num))
+    if (validatePhoneNumber(num))
     {
         phoneNumber = num;
     }
@@ -163,7 +161,7 @@ void Patient::setPhoneNumber(const string &num)
 
 void Patient::setHeight(const float &h)
 {
-    if(h <= 0 || h >= 9)
+    if (h <= 0 || h >= 9)
     {
         std::cerr << "Invalid height value. Setting to 0.\n";
         height = 0.0f;
@@ -176,7 +174,7 @@ void Patient::setHeight(const float &h)
 
 void Patient::setWeight(const float &w)
 {
-    if(w <= 0 || w > 200)
+    if (w <= 0 || w > 200)
     {
         std::cerr << "Invalid weight value. Setting to 0.\n";
         weight = 0.0f;
@@ -189,7 +187,7 @@ void Patient::setWeight(const float &w)
 
 void Patient::setMaritalStatus(const int &married)
 {
-    if(married >= -1 && married <= 1)
+    if (married >= -1 && married <= 1)
     {
         maritalStatus = married;
     }
@@ -206,22 +204,10 @@ string Patient::getLastName() const { return lastName; }
 Date Patient::getDOB() const { return dob; }
 Address Patient::getAddress() const { return address; }
 bool Patient::getGender() const { return gender; }
-string Patient::getPhoneNumber() const { return phoneNumber;}
+string Patient::getPhoneNumber() const { return phoneNumber; }
 float Patient::getHeight() const { return height; }
 float Patient::getWeight() const { return weight; }
-int Patient::getMaritalStatus() const { return maritalStatus;} 
-
-string Patient::toCSV()
-{
-    return firstName + "," +
-           lastName + "," +
-           to_string(dob.d) + "," + to_string(dob.m) + "," + to_string(dob.y) + "," +
-           address.street + "," +
-           address.city + "," +
-           address.state + "," +
-           address.zipCode + "," +
-           address.country;
-}
+int Patient::getMaritalStatus() const { return maritalStatus; }
 
 string Patient::toCSV()
 {

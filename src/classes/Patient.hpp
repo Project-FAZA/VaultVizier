@@ -70,9 +70,8 @@ public:
     float getWeight() const;
     int getMaritalStatus() const;
 
-    string toCSV();
-
     // adds/updates to actual database
+    string toCSV();
     void save();
     static vector<Patient> fetchAll();
 };
