@@ -28,6 +28,9 @@ struct Address
 
 // validation func
 bool isValidDate(const Date &date);
+string validateField(const string &field, int maxLength, const string &fieldName);
+bool isAllDigits(const string &s);
+bool validatePhoneNumber(const string &phone);
 
 class Patient
 {
@@ -36,11 +39,11 @@ private:
     string lastName;
     Date dob;
     Address address;
-    bool gender; // F = female , T = male
+    bool gender;        // F = female , T = male
     string phoneNumber; //+92-301-23456789
-    float weight; //kg
-    float height; //ft
-    int maritalStatus; //{-1 = widowed, 0 = single, 1 = married}
+    float weight;       // kg
+    float height;       // ft
+    int maritalStatus;  //{-1 = widowed, 0 = single, 1 = married}
 
 public:
     Patient(const string &fname, const string &lname, const Date &date, const Address &addr);
@@ -53,7 +56,7 @@ public:
     void setGender(const bool &sex);
     void setPhoneNumber(const string &num);
     void setWeight(const float &w);
-    void setHeight(const float &h);  
+    void setHeight(const float &h);
     void setMaritalStatus(const int &married);
 
     // Getters
@@ -63,11 +66,13 @@ public:
     Address getAddress() const;
     bool getGender() const;
     string getPhoneNumber() const;
-    float getHeight() const ;  
-    float getWeight() const ;
-    int getMaritalStatus() const ;
-    
-    // adds/updates to actual database;
+    float getHeight() const;
+    float getWeight() const;
+    int getMaritalStatus() const;
+
+    string toCSV();
+
+    // adds/updates to actual database
     void save();
     static vector<Patient> fetchAll();
 };
