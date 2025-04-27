@@ -17,7 +17,6 @@ struct Date
     int y;
 };
 
-
 struct Address
 {
     string street;
@@ -27,11 +26,8 @@ struct Address
     string country;
 };
 
-//validation func
+// validation func
 bool isValidDate(const Date &date);
-string validateField(const string& field, int maxLength, const string& fieldName);
-bool isAllDigits(const string& s);
-bool validatePhoneNumber(const string& phone);
 
 class Patient
 {

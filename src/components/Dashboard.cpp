@@ -57,8 +57,8 @@ void Dashboard(ScreenInteractive &screen, ScreenStatus *status)
             patient.setDOB(dob);
             patient.setAddress(Address{street, city, state, zipCode, country});
 
+            patient.save();
             msg = "Patient Registered Successfully!";
-            // patient.save();
             *status = ScreenStatus::LOGIN;
             screen.ExitLoopClosure()();
         } catch (...) {

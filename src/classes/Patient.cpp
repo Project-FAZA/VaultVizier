@@ -211,9 +211,31 @@ float Patient::getHeight() const { return height; }
 float Patient::getWeight() const { return weight; }
 int Patient::getMaritalStatus() const { return maritalStatus;} 
 
+string Patient::toCSV()
+{
+    return firstName + "," +
+           lastName + "," +
+           to_string(dob.d) + "," + to_string(dob.m) + "," + to_string(dob.y) + "," +
+           address.street + "," +
+           address.city + "," +
+           address.state + "," +
+           address.zipCode + "," +
+           address.country;
+}
+
 void Patient::save()
 {
-    cout << "Saved!"; // Yeh toh hyderabadi karega // Update: abay yaar ab mujhy hee karna parega
+    ofstream file;
+    file.open("patients.csv", ios::app);
+
+    if (!file)
+    {
+        cerr << "Error: Unable to open file." << endl;
+        return;
+    }
+
+    file << toCSV() << endl; // Write CSV line
+    file.close();
 }
 
 vector<Patient> Patient::fetchAll()
