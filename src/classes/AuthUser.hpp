@@ -16,6 +16,7 @@ public:
     static string encrypt(string p);
     static bool verifyPassword(string username, string inputPassword);
     static bool alreadyExists(string username);
+    static void create(string username, string pw, bool doctor = false);
 };
 
 #endif

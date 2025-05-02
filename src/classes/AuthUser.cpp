@@ -58,3 +58,14 @@ bool AuthUser::alreadyExists(string username)
     file.close();
     return false;
 }
+
+void AuthUser::create(string username, string pw, bool doctor)
+{
+    if (alreadyExists(username))
+        return;
+
+    ifstream file("auth.csv");
+
+    string line;
+    getline(file, line);
+}
