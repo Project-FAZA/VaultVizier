@@ -131,6 +131,8 @@ int main()
             Dashboard(screen, &status);
         else if (status == ScreenStatus::LOGIN)
             Login(screen, &status);
+        else if (status == ScreenStatus::CREATE_ACC)
+            CreateAcc(screen, &status);
 
         std::cout << "\033[2J\033[H";
         std::cout.flush();

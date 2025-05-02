@@ -26,7 +26,10 @@ void Login(ScreenInteractive &screen, ScreenStatus *status)
             else msg = "Invalid Password";
         } });
 
-    auto createAccountButton = Button("Create An Account", [&] {});
+    auto createAccountButton = Button("Create An Account", [&]
+                                      { 
+                                        *status = ScreenStatus::CREATE_ACC; 
+                                        screen.Exit(); });
 
     // Container for input and button
     auto container = Container::Vertical({
