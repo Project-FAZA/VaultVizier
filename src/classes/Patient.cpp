@@ -83,6 +83,10 @@ bool validatePhoneNumber(const string &phone)
 Patient::Patient(const std::string &firstName, const std::string &lastName, const Date &dob, const Address &address)
     : firstName(firstName), lastName(lastName), dob(dob), address(address) {}
 
+Patient::Patient()
+{
+}
+
 // Setters
 void Patient::setFirstName(const string &fname)
 {

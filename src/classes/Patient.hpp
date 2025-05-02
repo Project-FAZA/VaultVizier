@@ -47,6 +47,7 @@ private:
 
 public:
     Patient(const string &fname, const string &lname, const Date &date, const Address &addr);
+    Patient();
 
     // Setters
     void setFirstName(const string &fname);

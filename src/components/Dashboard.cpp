@@ -2,6 +2,7 @@
 #include "../classes/Patient.hpp"
 #include "../classes/GlobalVars.hpp"
 #include <vector>
+#include <ftxui/dom/table.hpp>
 
 using namespace std;
 
@@ -75,9 +76,9 @@ void Dashboard(ScreenInteractive &screen, ScreenStatus *status)
 
     // Create layout container
     auto container = Container::Vertical({firstNameInput,
-                                          lastNameInput, genderInput,
+                                          lastNameInput,
                                           Container::Horizontal({dobDayInput, dobMonthInput, dobYearInput}),
-                                          streetInput, cityInput, stateInput, zipInput, countryInput,
+                                          streetInput, cityInput, stateInput, zipInput, countryInput, genderInput,
                                           submitButton});
 
     // Decorate the UI
@@ -87,8 +88,7 @@ void Dashboard(ScreenInteractive &screen, ScreenStatus *status)
                                             separator(),
                                             vbox({text("Personal Info") | bold,
                                                   firstNameInput->Render(),
-                                                  lastNameInput->Render(),
-                                                  genderInput->Render()}) |
+                                                  lastNameInput->Render()}) |
                                                 borderRounded |
                                                 flex,
 
@@ -110,6 +110,10 @@ void Dashboard(ScreenInteractive &screen, ScreenStatus *status)
                                                 countryInput->Render(),
                                             }) | borderRounded,
 
+                                            vbox({text("Clinical") | bold,
+                                                  genderInput->Render()}) |
+                                                borderRounded,
+
                                             submitButton->Render() | center,
                                             text(msg) | color(Color::Yellow) | center,
                                         }) |
@@ -118,7 +122,101 @@ void Dashboard(ScreenInteractive &screen, ScreenStatus *status)
     /* VIEW PT                                                                                */
     /* ====================================================================================== */
 
-    std::vector<std::string> tabTitles = {"Add Patient", "Settings", "Preferences"};
+    // Search input and logic
+    std::string searchQuery;
+    std::vector<std::string> searchResults;
+    int selectedResultIndex = 0;
+
+    // Search input and button
+    auto searchInput = Input(&searchQuery, "Search by name", inputOption());
+
+    auto searchButton = Button("Search", [&]
+                               {
+    searchResults.clear();
+    selectedResultIndex = 0;
+
+    for (const auto &p : Patient::fetchAll()) {
+        std::string fullName = p.getFirstName() + " " + p.getLastName();
+        if (fullName.find(searchQuery) != std::string::npos) {
+            searchResults.push_back(fullName);
+        }
+    }
+
+    if (searchResults.empty()) {
+        searchResults.push_back("No results found");
+    } });
+
+    auto searchResultsMenu = Menu(&searchResults, &selectedResultIndex);
+
+    // Combine all into one container
+    auto viewPatientContainer = Container::Vertical({searchInput,
+                                                     searchButton,
+                                                     searchResultsMenu});
+
+    Component viewPatientTabUI = Renderer(viewPatientContainer, [&]
+                                          {
+    // Try to get selected patient
+    Patient selected;
+    bool valid = false;
+    if (!searchResults.empty() && searchResults[0] != "No results found") {
+        const auto &name = searchResults[selectedResultIndex];
+        for (const auto &p : Patient::fetchAll()) {
+            std::string fullName = p.getFirstName() + " " + p.getLastName();
+            if (fullName == name) {
+                selected = p;
+                valid = true;
+                break;
+            }
+        }
+    }
+
+    auto resultBox = vbox({
+        text("Search Patient") | bold | center,
+        searchInput->Render(),
+        searchButton->Render() | center,
+        separator(),
+        text("Results:") | bold,
+        searchResultsMenu->Render() | frame | size(HEIGHT, LESS_THAN, 8),
+    });
+
+    if (!valid) {
+        return vbox({
+            resultBox,
+            separator(),
+            text("No patient selected or not found.") | center | color(Color::Red),
+        }) | borderRounded | flex;
+    }
+
+    const Address &addr = selected.getAddress();
+    const Date &dob = selected.getDOB();
+
+    auto patientDetails = Table({
+        {"Field",     "Value"},
+        {"Name",      selected.getFirstName() + " " + selected.getLastName()},
+        {"Gender",    std::string(selected.getGender() ? "Male" : "Female")},
+        {"DOB",       to_string(dob.d) + "/" + to_string(dob.m) + "/" + to_string(dob.y)},
+        {"Street",    addr.street},
+        {"City",      addr.city},
+        {"State",     addr.state},
+        {"Zip Code",  addr.zipCode},
+        {"Country",   addr.country}
+    });
+    
+    patientDetails.SelectAll().Border(LIGHT);
+    patientDetails.SelectAll().SeparatorVertical(LIGHT);
+    patientDetails.SelectColumn(0).Decorate(bold);
+    patientDetails.SelectRow(0).SeparatorHorizontal(LIGHT);
+    patientDetails.SelectRow(0).BorderBottom(LIGHT);
+    patientDetails.SelectColumn(0).DecorateCells(align_right);
+
+    return vbox({
+        resultBox,
+        separator(),
+        patientDetails.Render()
+    }) | borderRounded | flex; });
+    // END
+
+    std::vector<std::string> tabTitles = {"Add Patient", "View Patient", "Settings", "Preferences"};
     int selectedTab = 0;
 
     // Tab 2: Settings
@@ -142,6 +240,7 @@ void Dashboard(ScreenInteractive &screen, ScreenStatus *status)
 
     // Tab container: Shows the appropriate UI
     Component content = Container::Tab({add_p,
+                                        viewPatientTabUI,
                                         tab2,
                                         tab3},
                                        &selectedTab);
