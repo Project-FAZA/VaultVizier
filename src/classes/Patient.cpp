@@ -165,7 +165,7 @@ void Patient::setPhoneNumber(const string &num)
 
 void Patient::setHeight(const float &h)
 {
-    if (h <= 0 || h >= 9)
+    if (h <= 0)
     {
         std::cerr << "Invalid height value. Setting to 0.\n";
         height = 0.0f;
@@ -178,7 +178,7 @@ void Patient::setHeight(const float &h)
 
 void Patient::setWeight(const float &w)
 {
-    if (w <= 0 || w > 200)
+    if (w <= 0)
     {
         std::cerr << "Invalid weight value. Setting to 0.\n";
         weight = 0.0f;
@@ -222,7 +222,12 @@ string Patient::toCSV()
            address.city + "," +
            address.state + "," +
            address.zipCode + "," +
-           address.country;
+           address.country + "," +
+           phoneNumber + "," +
+           (gender ? "1" : "0") + "," +
+           to_string(weight) + "," +
+           to_string(height) + "," +
+           to_string(maritalStatus);
 }
 
 void Patient::save()
