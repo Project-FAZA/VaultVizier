@@ -19,32 +19,47 @@ void Dashboard(ScreenInteractive &screen, ScreenStatus *status)
 
     string street, city, state, zipCode, country;
 
+    string phoneNumber, weight, height;
+
+    vector<string> maritalStatusList = {"Widowed", "Single", "Married"};
+    int maritalStatusSelected = 0;
+
     vector<string> genderList = {"Male", "Female"};
     int genderSelected = 0;
 
     Patient patient("", "", Date{0, 0, 0}, Address{"", "", "", "", ""});
 
     // Input fields
+    // Personal
     auto firstNameInput = Input(&firstName, "First Name", inputOption());
     auto lastNameInput = Input(&lastName, "Last Name", inputOption());
     auto genderInput = Toggle(&genderList, &genderSelected);
 
+    // BIRTH
     auto dobDayInput = Input(&dobDay, "Day", inputOption());
     auto dobMonthInput = Input(&dobMonth, "Month", inputOption());
     auto dobYearInput = Input(&dobYear, "Year", inputOption());
 
+    // Billing Address
     auto streetInput = Input(&street, "Street Address", inputOption());
     auto cityInput = Input(&city, "City", inputOption());
     auto stateInput = Input(&state, "State", inputOption());
     auto zipInput = Input(&zipCode, "Zip Code", inputOption());
     auto countryInput = Input(&country, "Country", inputOption());
+    auto phoneInput = Input(&phoneNumber, "Phone Number", inputOption());
+
+    // Clinical
+    auto weightInput = Input(&weight, "Weight (kg)", inputOption());
+    auto heightInput = Input(&height, "Height (cm)", inputOption());
+    auto maritalStatusInput = Toggle(&maritalStatusList, &maritalStatusSelected);
 
     auto submitButton = Button("Submit", [&]
                                {
         if (firstName.empty() || lastName.empty() ||
-            dobDay.empty() || dobMonth.empty() || dobYear.empty() ||
-            street.empty() || city.empty() || state.empty() ||
-            zipCode.empty() || country.empty()) {
+        dobDay.empty() || dobMonth.empty() || dobYear.empty() ||
+        street.empty() || city.empty() || state.empty() ||
+        zipCode.empty() || country.empty() || phoneNumber.empty() ||
+        weight.empty() || height.empty()) {
             msg = "All fields must be filled out!";
             return;
         }
@@ -65,6 +80,10 @@ void Dashboard(ScreenInteractive &screen, ScreenStatus *status)
             patient.setGender(!genderSelected);
             patient.setDOB(dob);
             patient.setAddress(Address{street, city, state, zipCode, country});
+            patient.setPhoneNumber(phoneNumber);
+            patient.setWeight(stof(weight));
+            patient.setHeight(stof(height));
+            patient.setMaritalStatus(maritalStatusSelected - 1);
 
             patient.save();
             msg = "Patient Registered Successfully!";
@@ -78,7 +97,11 @@ void Dashboard(ScreenInteractive &screen, ScreenStatus *status)
     auto container = Container::Vertical({firstNameInput,
                                           lastNameInput,
                                           Container::Horizontal({dobDayInput, dobMonthInput, dobYearInput}),
-                                          streetInput, cityInput, stateInput, zipInput, countryInput, genderInput,
+                                          streetInput, cityInput, stateInput, zipInput, countryInput,
+                                          phoneInput,
+                                          genderInput,
+                                          weightInput, heightInput,
+                                          maritalStatusInput,
                                           submitButton});
 
     // Decorate the UI
@@ -89,29 +112,30 @@ void Dashboard(ScreenInteractive &screen, ScreenStatus *status)
                                             vbox({text("Personal Info") | bold,
                                                   firstNameInput->Render(),
                                                   lastNameInput->Render()}) |
-                                                borderRounded |
-                                                flex,
+                                                borderRounded | flex,
 
-                                            vbox({
-                                                text("Date of Birth") | bold,
-                                                hbox({
-                                                    dobDayInput->Render() | flex,
-                                                    dobMonthInput->Render() | flex,
-                                                    dobYearInput->Render() | flex,
-                                                }),
-                                            }) | borderRounded,
+                                            vbox({text("Date of Birth") | bold,
+                                                  hbox({
+                                                      dobDayInput->Render() | flex,
+                                                      dobMonthInput->Render() | flex,
+                                                      dobYearInput->Render() | flex,
+                                                  })}) |
+                                                borderRounded,
 
-                                            vbox({
-                                                text("Address") | bold,
-                                                streetInput->Render(),
-                                                cityInput->Render(),
-                                                stateInput->Render(),
-                                                zipInput->Render(),
-                                                countryInput->Render(),
-                                            }) | borderRounded,
+                                            vbox({text("Billing Address") | bold,
+                                                  streetInput->Render(),
+                                                  cityInput->Render(),
+                                                  stateInput->Render(),
+                                                  zipInput->Render(),
+                                                  countryInput->Render(),
+                                                  phoneInput->Render()}) |
+                                                borderRounded,
 
                                             vbox({text("Clinical") | bold,
-                                                  genderInput->Render()}) |
+                                                  genderInput->Render(),
+                                                  weightInput->Render(),
+                                                  heightInput->Render(),
+                                                  maritalStatusInput->Render()}) |
                                                 borderRounded,
 
                                             submitButton->Render() | center,
@@ -175,7 +199,7 @@ void Dashboard(ScreenInteractive &screen, ScreenStatus *status)
         searchInput->Render(),
         searchButton->Render() | center,
         separator(),
-        text("Results:") | bold,
+        text("Results") | bold | center,
         searchResultsMenu->Render() | frame | size(HEIGHT, LESS_THAN, 8),
     });
 
@@ -202,17 +226,22 @@ void Dashboard(ScreenInteractive &screen, ScreenStatus *status)
         {"Country",   addr.country}
     });
     
-    patientDetails.SelectAll().Border(LIGHT);
+    patientDetails.SelectRow(0).Border(LIGHT);
+    patientDetails.SelectAll().Border(HEAVY);
     patientDetails.SelectAll().SeparatorVertical(LIGHT);
     patientDetails.SelectColumn(0).Decorate(bold);
     patientDetails.SelectRow(0).SeparatorHorizontal(LIGHT);
-    patientDetails.SelectRow(0).BorderBottom(LIGHT);
     patientDetails.SelectColumn(0).DecorateCells(align_right);
+
+    patientDetails.SelectRow(0).DecorateCells(color(Color::Yellow1));
+    patientDetails.SelectColumn(1).DecorateCells(color(Color::LightSkyBlue1));
+    patientDetails.SelectColumn(0).DecorateCells(color(Color::Yellow1));
+    patientDetails.SelectAll().Decorate(color(Color::Yellow1));
 
     return vbox({
         resultBox,
         separator(),
-        patientDetails.Render()
+        patientDetails.Render() | center
     }) | borderRounded | flex; });
     // END
 
