@@ -20,6 +20,7 @@ void Login(ScreenInteractive &screen, ScreenStatus *status)
             if (!AuthUser::alreadyExists(username)) msg = "User does not exist";
             else if (AuthUser::verifyPassword(username, password))
             {
+
                 *status = DASHBOARD;
                 screen.Exit();
             }

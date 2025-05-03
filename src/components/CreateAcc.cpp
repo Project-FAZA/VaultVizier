@@ -26,7 +26,7 @@ void CreateAcc(ScreenInteractive &screen, ScreenStatus *status)
         } else if (password != confirmPassword) {
             msg = "Passwords do not match";
         } else {
-            // AuthUser::create(username, password);
+            AuthUser::create(username, password);
             // msg = "Account created successfully!";
             *status = LOGIN; // Return to login screen after account creation
             screen.Exit();

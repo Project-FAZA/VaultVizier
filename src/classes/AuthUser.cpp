@@ -61,11 +61,15 @@ bool AuthUser::alreadyExists(string username)
 
 void AuthUser::create(string username, string pw, bool doctor)
 {
-    if (alreadyExists(username))
+    ofstream file;
+    file.open("auth.csv", ios::app);
+
+    if (!file)
+    {
+        cerr << "Error: Unable to open file." << endl;
         return;
+    }
 
-    ifstream file("auth.csv");
-
-    string line;
-    getline(file, line);
+    file << username << "," << pw << "," << to_string(doctor ? 1 : 0) << endl; // Write CSV line
+    file.close();
 }
