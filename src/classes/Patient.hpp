@@ -7,6 +7,7 @@
 #include <sstream>
 #include <vector>
 #include <cctype>
+#include "GlobalVars.hpp"
 
 using namespace std;
 
@@ -35,6 +36,7 @@ bool validatePhoneNumber(const string &phone);
 class Patient
 {
 private:
+    string ssn; // XXXXX-XXXXXX-X
     string firstName;
     string lastName;
     Date dob;
@@ -48,8 +50,19 @@ private:
 public:
     Patient(const string &fname, const string &lname, const Date &date, const Address &addr);
     Patient();
+    Patient(const string &ssn,
+            const string &fname,
+            const string &lname,
+            const Date &date,
+            const Address &addr,
+            const bool &gender,
+            const string &phone,
+            const float &weight,
+            const float &height,
+            const int &maritalStatus);
 
     // Setters
+    void setSSN(const string s);
     void setFirstName(const string &fname);
     void setLastName(const string &lname);
     void setDOB(const Date &date);
@@ -61,6 +74,7 @@ public:
     void setMaritalStatus(const int &married);
 
     // Getters
+    string getSSN() const;
     string getFirstName() const;
     string getLastName() const;
     Date getDOB() const;
@@ -72,9 +86,12 @@ public:
     int getMaritalStatus() const;
 
     // adds/updates to actual database
-    string toCSV();
+    string toCSV() const;
     void save();
+
+    static bool alreadyExists(string s);
     static vector<Patient> fetchAll();
+    static Patient fetch(string c);
 };
 
 #endif

@@ -87,6 +87,17 @@ Patient::Patient()
 {
 }
 
+Patient::Patient(const string &ssn, const string &fname, const string &lname, const Date &date, const Address &addr, const bool &gender, const string &phone, const float &weight, const float &height, const int &maritalStatus)
+    : ssn(ssn), firstName(fname), lastName(lname), dob(date), address(addr),
+      gender(gender), phoneNumber(phone), weight(weight), height(height), maritalStatus(maritalStatus)
+{
+}
+
+void Patient::setSSN(const string s)
+{
+    ssn = s;
+}
+
 // Setters
 void Patient::setFirstName(const string &fname)
 {
@@ -202,6 +213,11 @@ void Patient::setMaritalStatus(const int &married)
     }
 }
 
+string Patient::getSSN() const
+{
+    return ssn;
+}
+
 // Getters
 string Patient::getFirstName() const { return firstName; }
 string Patient::getLastName() const { return lastName; }
@@ -213,9 +229,10 @@ float Patient::getHeight() const { return height; }
 float Patient::getWeight() const { return weight; }
 int Patient::getMaritalStatus() const { return maritalStatus; }
 
-string Patient::toCSV()
+string Patient::toCSV() const
 {
-    return firstName + "," +
+    return ssn + "," +
+           firstName + "," +
            lastName + "," +
            to_string(dob.d) + "," + to_string(dob.m) + "," + to_string(dob.y) + "," +
            address.street + "," +
@@ -232,21 +249,93 @@ string Patient::toCSV()
 
 void Patient::save()
 {
-    ofstream file;
-    file.open("patients.csv", ios::app);
+    vector<Patient> allPatients = Patient::fetchAll();
+    bool found = false;
 
-    if (!file)
+    // Update if exists, else add
+    for (auto &p : allPatients)
     {
-        cerr << "Error: Unable to open file." << endl;
+        if (p.getSSN() == this->ssn)
+        {
+            p = *this;
+            found = true;
+            break;
+        }
+    }
+
+    if (!found)
+    {
+        allPatients.push_back(*this);
+    }
+
+    const string tempFileName = "patients_temp.csv";
+    ofstream tempFile(tempFileName);
+    if (!tempFile.is_open())
+    {
+        cerr << "Error: Unable to open temporary file for writing." << endl;
         return;
     }
 
-    file << toCSV() << endl; // Write CSV line
+    // Write header
+    tempFile << "ssn,firstname,lastname,d,m,y,street,city,state,zip,country,phone,gender,weight,height,married" << endl;
+
+    // Write patient records
+    for (const Patient p : allPatients)
+    {
+        tempFile << p.toCSV() << endl;
+    }
+
+    tempFile.close();
+
+    // Replace the original file with the temp file
+    if (std::remove("patients.csv") != 0)
+    {
+        cerr << "Error: Could not remove original file." << endl;
+        return;
+    }
+
+    if (std::rename(tempFileName.c_str(), "patients.csv") != 0)
+    {
+        cerr << "Error: Could not rename temporary file." << endl;
+        return;
+    }
+}
+
+bool Patient::alreadyExists(const string ssnToFind)
+{
+    GlobalVar::createIfDoesNotExist("patients.csv", "ssn,firstname,lastname,d,m,y,street,city,state,zip,country,phone,gender,weight,height,married");
+    ifstream file("patients.csv");
+
+    if (!file.is_open())
+    {
+        cerr << "Error: Unable to open file." << endl;
+        return false;
+    }
+
+    string line;
+    getline(file, line); // skip header
+
+    while (getline(file, line))
+    {
+        stringstream lineStream(line);
+        string ssn;
+
+        getline(lineStream, ssn, ',');
+
+        if (ssn == ssnToFind)
+        {
+            file.close();
+            return true;
+        }
+    }
+
     file.close();
+    return false;
 }
 
 vector<Patient> Patient::fetchAll()
 {
+    GlobalVar::createIfDoesNotExist("patients.csv", "firstname,lastname,d,m,y,street,city,state,zip,country,phone,gender,weight,height,married");
     ifstream file("patients.csv");
 
     if (!file.is_open())
@@ -262,11 +351,69 @@ vector<Patient> Patient::fetchAll()
     while (getline(file, line))
     {
         stringstream lineStream(line);
+        string ssn, firstName, lastName;
+        string dStr, mStr, yStr;
+        string street, city, state, zip, country;
+        string phone, genderStr, weightStr, heightStr, maritalStr;
 
-        string firstName, lastName;
+        getline(lineStream, ssn, ',');
+        getline(lineStream, firstName, ',');
+        getline(lineStream, lastName, ',');
+        getline(lineStream, dStr, ',');
+        getline(lineStream, mStr, ',');
+        getline(lineStream, yStr, ',');
+        getline(lineStream, street, ',');
+        getline(lineStream, city, ',');
+        getline(lineStream, state, ',');
+        getline(lineStream, zip, ',');
+        getline(lineStream, country, ',');
+        getline(lineStream, phone, ',');
+        getline(lineStream, genderStr, ',');
+        getline(lineStream, weightStr, ',');
+        getline(lineStream, heightStr, ',');
+        getline(lineStream, maritalStr, ',');
+
+        Date dob = {stoi(dStr), stoi(mStr), stoi(yStr)};
+        Address addr = {street, city, state, zip, country};
+        bool gender = (genderStr == "1");
+        float weight = stof(weightStr);
+        float height = stof(heightStr);
+        int maritalStatus = stoi(maritalStr);
+
+        // ✅ Use full constructor here
+        Patient p(ssn, firstName, lastName, dob, addr, gender, phone, weight, height, maritalStatus);
+
+        pats.push_back(p);
+    }
+
+    file.close();
+    return pats;
+}
+
+Patient Patient::fetch(string ssnToFind)
+{
+    GlobalVar::createIfDoesNotExist("patients.csv", "ssn,firstname,lastname,d,m,y,street,city,state,zip,country,phone,gender,weight,height,married");
+    ifstream file("patients.csv");
+
+    if (!file.is_open())
+    {
+        cerr << "Error: Unable to open file." << endl;
+        return Patient(); // Return default patient if file can't be opened
+    }
+
+    string line;
+    getline(file, line); // Skip header
+
+    while (getline(file, line))
+    {
+        stringstream lineStream(line);
+
+        string ssn, firstName, lastName;
         string dob_dStr, dob_mStr, dob_yStr;
         string add_street, add_city, add_state, add_zipCode, add_country;
+        string phone, genderStr, weightStr, heightStr, marriedStr;
 
+        getline(lineStream, ssn, ',');
         getline(lineStream, firstName, ',');
         getline(lineStream, lastName, ',');
         getline(lineStream, dob_dStr, ',');
@@ -277,12 +424,26 @@ vector<Patient> Patient::fetchAll()
         getline(lineStream, add_state, ',');
         getline(lineStream, add_zipCode, ',');
         getline(lineStream, add_country, ',');
+        getline(lineStream, phone, ',');
+        getline(lineStream, genderStr, ',');
+        getline(lineStream, weightStr, ',');
+        getline(lineStream, heightStr, ',');
+        getline(lineStream, marriedStr, ',');
 
-        Patient p(firstName, lastName, Date{stoi(dob_dStr), stoi(dob_mStr), stoi(dob_yStr)}, Address{add_street, add_city, add_state, add_zipCode, add_country});
+        if (ssn == ssnToFind)
+        {
+            Date dob = {stoi(dob_dStr), stoi(dob_mStr), stoi(dob_yStr)};
+            Address addr = {add_street, add_city, add_state, add_zipCode, add_country};
+            bool gender = (genderStr == "1" || genderStr == "true");
+            float weight = stof(weightStr);
+            float height = stof(heightStr);
+            int maritalStatus = stoi(marriedStr);
 
-        pats.push_back(p);
+            file.close();
+            return Patient(ssn, firstName, lastName, dob, addr, gender, phone, weight, height, maritalStatus);
+        }
     }
 
     file.close();
-    return pats;
+    return Patient(); // Return default if not found
 }
