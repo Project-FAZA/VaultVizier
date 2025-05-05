@@ -3,15 +3,33 @@
 #include "../classes/GlobalVars.hpp"
 #include <vector>
 #include <ftxui/dom/table.hpp>
+#include <cctype>
 
 using namespace std;
 
+int numOfDots(string s)
+{
+    int count = 0;
+    for (char c : s)
+    {
+        if (c == '.')
+        {
+            count++;
+        }
+    }
+    return count;
+}
+
 void Dashboard(ScreenInteractive &screen, ScreenStatus *status)
 {
+    vector<string> tabTitles = {"Add Patient", "View Patient", "Settings", "Preferences"};
+    int selectedTab = 0;
     /* ====================================================================================== */
     /* ADD PT                                                                                 */
     /* ====================================================================================== */
     string msg = "";
+
+    string ssn;
 
     string firstName, lastName;
 
@@ -31,70 +49,92 @@ void Dashboard(ScreenInteractive &screen, ScreenStatus *status)
 
     // Input fields
     // Personal
+    auto ssnInput = Input(&ssn, "Social Security Number", inputOption());
     auto firstNameInput = Input(&firstName, "First Name", inputOption());
     auto lastNameInput = Input(&lastName, "Last Name", inputOption());
     auto genderInput = Toggle(&genderList, &genderSelected);
 
+    // CatchEvent
+    auto integerEvent = CatchEvent([&](Event e)
+                                   { return e.is_character() && !isdigit(e.character()[0]); });
+
+    auto getFloatEvent = [&](string *floatStr)
+    { return CatchEvent([floatStr](Event e)
+                        {
+            if (!e.is_character())
+                return false;
+
+            return !(isdigit(e.character()[0]) || ((e.character()[0] == '.') && (numOfDots(*floatStr) == 0))); }); };
+
+    auto floatEventW = getFloatEvent(&weight);
+    auto floatEventH = getFloatEvent(&height);
+
     // BIRTH
-    auto dobDayInput = Input(&dobDay, "Day", inputOption());
-    auto dobMonthInput = Input(&dobMonth, "Month", inputOption());
-    auto dobYearInput = Input(&dobYear, "Year", inputOption());
+    auto dobDayInput = Input(&dobDay, "Day", inputOption()) | integerEvent;
+    auto dobMonthInput = Input(&dobMonth, "Month", inputOption()) | integerEvent;
+    auto dobYearInput = Input(&dobYear, "Year", inputOption()) | integerEvent;
 
     // Billing Address
     auto streetInput = Input(&street, "Street Address", inputOption());
     auto cityInput = Input(&city, "City", inputOption());
     auto stateInput = Input(&state, "State", inputOption());
-    auto zipInput = Input(&zipCode, "Zip Code", inputOption());
+    auto zipInput = Input(&zipCode, "Zip Code", inputOption()) | integerEvent;
     auto countryInput = Input(&country, "Country", inputOption());
     auto phoneInput = Input(&phoneNumber, "Phone Number", inputOption());
 
     // Clinical
-    auto weightInput = Input(&weight, "Weight (kg)", inputOption());
-    auto heightInput = Input(&height, "Height (cm)", inputOption());
+    auto weightInput = Input(&weight, "Weight (kg)", inputOption()) | floatEventW;
+    auto heightInput = Input(&height, "Height (cm)", inputOption()) | floatEventH;
     auto maritalStatusInput = Toggle(&maritalStatusList, &maritalStatusSelected);
 
     auto submitButton = Button("Submit", [&]
                                {
-        if (firstName.empty() || lastName.empty() ||
-        dobDay.empty() || dobMonth.empty() || dobYear.empty() ||
-        street.empty() || city.empty() || state.empty() ||
-        zipCode.empty() || country.empty() || phoneNumber.empty() ||
-        weight.empty() || height.empty()) {
-            msg = "All fields must be filled out!";
-            return;
-        }
-
-        try {
-            int d = std::stoi(dobDay);
-            int m = std::stoi(dobMonth);
-            int y = std::stoi(dobYear);
-            Date dob{d, m, y};
-
-            if (!isValidDate(dob)) {
-                msg = "Invalid Date of Birth!";
+            if (ssn.empty() || firstName.empty() || lastName.empty() ||
+                dobDay.empty() || dobMonth.empty() || dobYear.empty() ||
+                street.empty() || city.empty() || state.empty() ||
+                zipCode.empty() || country.empty() || phoneNumber.empty() ||
+                weight.empty() || height.empty())
+            {
+                msg = "All fields must be filled out!";
                 return;
             }
 
-            patient.setFirstName(firstName);
-            patient.setLastName(lastName);
-            patient.setGender(!genderSelected);
-            patient.setDOB(dob);
-            patient.setAddress(Address{street, city, state, zipCode, country});
-            patient.setPhoneNumber(phoneNumber);
-            patient.setWeight(stof(weight));
-            patient.setHeight(stof(height));
-            patient.setMaritalStatus(maritalStatusSelected - 1);
+            try
+            {
+                int d = std::stoi(dobDay);
+                int m = std::stoi(dobMonth);
+                int y = std::stoi(dobYear);
+                Date dob{d, m, y};
 
-            patient.save();
-            msg = "Patient Registered Successfully!";
-            *status = ScreenStatus::LOGIN;
-            screen.ExitLoopClosure()();
-        } catch (...) {
-            msg = "Invalid date values!";
-        } });
+                if (!isValidDate(dob))
+                {
+                    msg = "Invalid Date of Birth!";
+                    return;
+                }
+
+                patient.setSSN(ssn);
+                patient.setFirstName(firstName);
+                patient.setLastName(lastName);
+                patient.setGender(!genderSelected);
+                patient.setDOB(dob);
+                patient.setAddress(Address{street, city, state, zipCode, country});
+                patient.setPhoneNumber(phoneNumber);
+                patient.setWeight(stof(weight));
+                patient.setHeight(stof(height));
+                patient.setMaritalStatus(maritalStatusSelected - 1);
+
+                patient.save();
+                msg = "Patient Registered Successfully!";
+                *status = ScreenStatus::LOGIN;
+                screen.ExitLoopClosure()();
+            }
+            catch (...)
+            {
+                msg = "Invalid date values!";
+            } });
 
     // Create layout container
-    auto container = Container::Vertical({firstNameInput,
+    auto container = Container::Vertical({ssnInput, firstNameInput,
                                           lastNameInput,
                                           Container::Horizontal({dobDayInput, dobMonthInput, dobYearInput}),
                                           streetInput, cityInput, stateInput, zipInput, countryInput,
@@ -110,9 +150,10 @@ void Dashboard(ScreenInteractive &screen, ScreenStatus *status)
                                             text("Patient Registration Form") | bold | center | border,
                                             separator(),
                                             vbox({text("Personal Info") | bold,
+                                                  ssnInput->Render(),
                                                   firstNameInput->Render(),
                                                   lastNameInput->Render()}) |
-                                                borderRounded | flex,
+                                                borderRounded,
 
                                             vbox({text("Date of Birth") | bold,
                                                   hbox({
@@ -156,19 +197,26 @@ void Dashboard(ScreenInteractive &screen, ScreenStatus *status)
 
     auto searchButton = Button("Search", [&]
                                {
-    searchResults.clear();
-    selectedResultIndex = 0;
+            searchResults.clear();
+            selectedResultIndex = 0;
 
-    for (const auto &p : Patient::fetchAll()) {
-        std::string fullName = p.getFirstName() + " " + p.getLastName();
-        if (fullName.find(searchQuery) != std::string::npos) {
-            searchResults.push_back(fullName);
-        }
-    }
+            for (const auto &p : Patient::fetchAll())
+            {
+                std::string fullName = p.getFirstName() + " " + p.getLastName();
+                if (fullName.find(searchQuery) != std::string::npos)
+                {
+                    searchResults.push_back(fullName);
+                }
+            }
 
-    if (searchResults.empty()) {
-        searchResults.push_back("No results found");
-    } });
+            if (searchResults.empty())
+            {
+                searchResults.push_back("No results found");
+            } });
+
+    MenuOption m;
+    m.on_enter = [&]
+    { screen.Exit(); };
 
     auto searchResultsMenu = Menu(&searchResults, &selectedResultIndex);
 
@@ -179,74 +227,73 @@ void Dashboard(ScreenInteractive &screen, ScreenStatus *status)
 
     Component viewPatientTabUI = Renderer(viewPatientContainer, [&]
                                           {
-    // Try to get selected patient
-    Patient selected;
-    bool valid = false;
-    if (!searchResults.empty() && searchResults[0] != "No results found") {
-        const auto &name = searchResults[selectedResultIndex];
-        for (const auto &p : Patient::fetchAll()) {
-            std::string fullName = p.getFirstName() + " " + p.getLastName();
-            if (fullName == name) {
-                selected = p;
-                valid = true;
-                break;
+            // Try to get selected patient
+            Patient selected;
+            bool valid = false;
+            if (!searchResults.empty() && searchResults[0] != "No results found")
+            {
+                const auto &name = searchResults[selectedResultIndex];
+                for (const auto &p : Patient::fetchAll())
+                {
+                    std::string fullName = p.getFirstName() + " " + p.getLastName();
+                    if (fullName == name)
+                    {
+                        selected = p;
+                        valid = true;
+                        break;
+                    }
+                }
             }
-        }
-    }
 
-    auto resultBox = vbox({
-        text("Search Patient") | bold | center,
-        searchInput->Render(),
-        searchButton->Render() | center,
-        separator(),
-        text("Results") | bold | center,
-        searchResultsMenu->Render() | frame | size(HEIGHT, LESS_THAN, 8),
-    });
+            auto resultBox = vbox({
+                text("Search Patient") | bold | center,
+                searchInput->Render(),
+                searchButton->Render() | center,
+                separator(),
+                text("Results") | bold | center,
+                searchResultsMenu->Render() | frame | size(HEIGHT, LESS_THAN, 8),
+            });
 
-    if (!valid) {
-        return vbox({
-            resultBox,
-            separator(),
-            text("No patient selected or not found.") | center | color(Color::Red),
-        }) | borderRounded | flex;
-    }
+            if (!valid)
+            {
+                return vbox({
+                           resultBox,
+                           separator(),
+                           text("No patient selected or not found.") | center | color(Color::Red),
+                       }) |
+                       borderRounded | flex;
+            }
 
-    const Address &addr = selected.getAddress();
-    const Date &dob = selected.getDOB();
+            const Address &addr = selected.getAddress();
+            const Date &dob = selected.getDOB();
 
-    auto patientDetails = Table({
-        {"Field",     "Value"},
-        {"Name",      selected.getFirstName() + " " + selected.getLastName()},
-        {"Gender",    std::string(selected.getGender() ? "Male" : "Female")},
-        {"DOB",       to_string(dob.d) + "/" + to_string(dob.m) + "/" + to_string(dob.y)},
-        {"Street",    addr.street},
-        {"City",      addr.city},
-        {"State",     addr.state},
-        {"Zip Code",  addr.zipCode},
-        {"Country",   addr.country}
-    });
-    
-    patientDetails.SelectRow(0).Border(LIGHT);
-    patientDetails.SelectAll().Border(HEAVY);
-    patientDetails.SelectAll().SeparatorVertical(LIGHT);
-    patientDetails.SelectColumn(0).Decorate(bold);
-    patientDetails.SelectRow(0).SeparatorHorizontal(LIGHT);
-    patientDetails.SelectColumn(0).DecorateCells(align_right);
+            auto patientDetails = Table({{"Field", "Value"},
+                                         {"Name", selected.getFirstName() + " " + selected.getLastName()},
+                                         {"Gender", std::string(selected.getGender() ? "Male" : "Female")},
+                                         {"DOB", to_string(dob.d) + "/" + to_string(dob.m) + "/" + to_string(dob.y)},
+                                         {"Street", addr.street},
+                                         {"City", addr.city},
+                                         {"State", addr.state},
+                                         {"Zip Code", addr.zipCode},
+                                         {"Country", addr.country}});
 
-    patientDetails.SelectRow(0).DecorateCells(color(Color::Yellow1));
-    patientDetails.SelectColumn(1).DecorateCells(color(Color::LightSkyBlue1));
-    patientDetails.SelectColumn(0).DecorateCells(color(Color::Yellow1));
-    patientDetails.SelectAll().Decorate(color(Color::Yellow1));
+            patientDetails.SelectRow(0).Border(LIGHT);
+            patientDetails.SelectAll().Border(HEAVY);
+            patientDetails.SelectAll().SeparatorVertical(LIGHT);
+            patientDetails.SelectColumn(0).Decorate(bold);
+            patientDetails.SelectRow(0).SeparatorHorizontal(LIGHT);
+            patientDetails.SelectColumn(0).DecorateCells(align_right);
 
-    return vbox({
-        resultBox,
-        separator(),
-        patientDetails.Render() | center
-    }) | borderRounded | flex; });
+            patientDetails.SelectRow(0).DecorateCells(color(Color::Yellow1));
+            patientDetails.SelectColumn(1).DecorateCells(color(Color::LightSkyBlue1));
+            patientDetails.SelectColumn(0).DecorateCells(color(Color::Yellow1));
+            patientDetails.SelectAll().Decorate(color(Color::Yellow1));
+
+            return vbox({resultBox,
+                         separator(),
+                         patientDetails.Render() | center}) |
+                   borderRounded | flex; });
     // END
-
-    std::vector<std::string> tabTitles = {"Add Patient", "View Patient", "Settings", "Preferences"};
-    int selectedTab = 0;
 
     // Tab 2: Settings
     std::string username;
