@@ -39,6 +39,7 @@ bool AuthUser::verifyPassword(string username, string inputPassword)
 
 bool AuthUser::alreadyExists(string username)
 {
+    GlobalVar::createIfDoesNotExist("auth.csv", "username,password,type");
     ifstream file("auth.csv");
 
     string line;
@@ -72,4 +73,31 @@ void AuthUser::create(string username, string pw, bool doctor)
 
     file << username << "," << pw << "," << to_string(doctor ? 1 : 0) << endl; // Write CSV line
     file.close();
+}
+
+bool AuthUser::isDoctor(string username)
+{
+    ifstream file("auth.csv");
+
+    string line;
+    getline(file, line); // Skip header
+
+    while (getline(file, line))
+    {
+        stringstream lineStream(line);
+
+        string fileUsername;
+        getline(lineStream, fileUsername, ',');
+
+        string password;
+        getline(lineStream, password, ',');
+
+        string type;
+        getline(lineStream, type, ',');
+
+        if (fileUsername == username)
+            return type == "1";
+    }
+
+    return false;
 }
