@@ -11,13 +11,15 @@ enum ScreenStatus
 {
     LOGIN,
     CREATE_ACC,
-    DASHBOARD
+    DASHBOARD,
+    DOCTOR_DASHBOARD
 };
 
 InputOption inputOption(bool password = false);
 
 void Login(ScreenInteractive &screen, ScreenStatus *status);
 void Dashboard(ScreenInteractive &screen, ScreenStatus *status);
+void DoctorDashboard(ScreenInteractive &screen, ScreenStatus *status);
 void CreateAcc(ScreenInteractive &screen, ScreenStatus *status);
 
 #endif
