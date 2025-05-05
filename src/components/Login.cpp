@@ -21,7 +21,7 @@ void Login(ScreenInteractive &screen, ScreenStatus *status)
             else if (AuthUser::verifyPassword(username, password))
             {
 
-                *status = DASHBOARD;
+                *status = (AuthUser::isDoctor(username) ? DOCTOR_DASHBOARD : DASHBOARD);
                 screen.Exit();
             }
             else msg = "Invalid Password";

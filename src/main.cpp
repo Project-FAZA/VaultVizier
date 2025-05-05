@@ -129,6 +129,8 @@ int main()
 
         if (status == ScreenStatus::DASHBOARD)
             Dashboard(screen, &status);
+        else if (status == ScreenStatus::DOCTOR_DASHBOARD)
+            DoctorDashboard(screen, &status);
         else if (status == ScreenStatus::LOGIN)
             Login(screen, &status);
         else if (status == ScreenStatus::CREATE_ACC)
