@@ -11,10 +11,15 @@ void CreateAcc(ScreenInteractive &screen, ScreenStatus *status)
     string confirmPassword;
     string msg = "Create New Account";
 
+    vector<string> roleOptions = {"User", "Doctor"};
+    int roleIndex = 0;
+
     // Input fields
     auto usernameInput = Input(&username, "Username", inputOption());
     auto passwordInput = Input(&password, "Password", inputOption(true));
     auto confirmPasswordInput = Input(&confirmPassword, "Confirm Password", inputOption(true));
+
+    auto roleSelector = Radiobox(&roleOptions, &roleIndex);
 
     // Button to trigger account creation
     auto createButton = Button("Create Account", [&]
@@ -26,7 +31,7 @@ void CreateAcc(ScreenInteractive &screen, ScreenStatus *status)
         } else if (password != confirmPassword) {
             msg = "Passwords do not match";
         } else {
-            AuthUser::create(username, password);
+            AuthUser::create(username, password, roleIndex);
             // msg = "Account created successfully!";
             *status = LOGIN; // Return to login screen after account creation
             screen.Exit();
@@ -42,6 +47,7 @@ void CreateAcc(ScreenInteractive &screen, ScreenStatus *status)
         usernameInput,
         passwordInput,
         confirmPasswordInput,
+        roleSelector,
         Container::Horizontal({createButton, backButton}),
     });
 
@@ -53,6 +59,7 @@ void CreateAcc(ScreenInteractive &screen, ScreenStatus *status)
                                      hbox(text("Username: "), usernameInput->Render()),
                                      hbox(text("Password: "), passwordInput->Render()),
                                      hbox(text("Confirm:  "), confirmPasswordInput->Render()),
+                                     hbox(text("Role:     "), roleSelector->Render()),
                                      separator(),
                                      hbox(createButton->Render(), filler(), backButton->Render()) | flex | center,
                                  }) |
