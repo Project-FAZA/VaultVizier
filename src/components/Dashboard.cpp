@@ -146,7 +146,14 @@ void Dashboard(ScreenInteractive &screen, ScreenStatus *status)
 
     // Decorate the UI
     Component add_p = Renderer(container, [&]
-                               { return vbox({
+                               { 
+                                if (GlobalVar::editMode) GlobalVar::assignEditValues(
+                                    &ssn, &firstName, &lastName,
+                                    &dobDay, &dobMonth, &dobYear,
+                                    &street, &city, &state, &zipCode, &country,
+                                    &phoneNumber, &weight, &height, &genderSelected, &maritalStatusSelected);
+                                
+                                return vbox({
                                             text("Patient Registration Form") | bold | center | border,
                                             separator(),
                                             vbox({text("Personal Info") | bold,
@@ -200,12 +207,14 @@ void Dashboard(ScreenInteractive &screen, ScreenStatus *status)
             searchResults.clear();
             selectedResultIndex = 0;
 
+            int i = 1;
             for (const auto &p : Patient::fetchAll())
             {
-                std::string fullName = p.getFirstName() + " " + p.getLastName();
+                std::string fullName = p.getSSN() + ". " + p.getFirstName() + " " + p.getLastName();
                 if (fullName.find(searchQuery) != std::string::npos)
                 {
                     searchResults.push_back(fullName);
+                    i++;
                 }
             }
 
@@ -214,28 +223,33 @@ void Dashboard(ScreenInteractive &screen, ScreenStatus *status)
                 searchResults.push_back("No results found");
             } });
 
-    MenuOption m;
-    m.on_enter = [&]
-    { screen.Exit(); };
+    auto editButton = Button("Edit", [&]
+                             {
+        if (!searchResults.empty() && searchResults[0] != "No results found")
+        {
+            GlobalVar::editMode = true;
+            selectedTab = 0;
+        } });
 
     auto searchResultsMenu = Menu(&searchResults, &selectedResultIndex);
 
     // Combine all into one container
     auto viewPatientContainer = Container::Vertical({searchInput,
-                                                     searchButton,
+                                                     searchButton, editButton,
                                                      searchResultsMenu});
 
     Component viewPatientTabUI = Renderer(viewPatientContainer, [&]
                                           {
             // Try to get selected patient
             Patient selected;
-            bool valid = false;
+            bool valid = (!searchResults.empty() && searchResults[0] != "No results found");
+            
             if (!searchResults.empty() && searchResults[0] != "No results found")
             {
                 const auto &name = searchResults[selectedResultIndex];
                 for (const auto &p : Patient::fetchAll())
                 {
-                    std::string fullName = p.getFirstName() + " " + p.getLastName();
+                    std::string fullName = p.getSSN() + ". " + p.getFirstName() + " " + p.getLastName();
                     if (fullName == name)
                     {
                         selected = p;
@@ -249,25 +263,30 @@ void Dashboard(ScreenInteractive &screen, ScreenStatus *status)
                 text("Search Patient") | bold | center,
                 searchInput->Render(),
                 searchButton->Render() | center,
+                editButton->Render() | center,
+                text(GlobalVar::selectedSSN),
                 separator(),
                 text("Results") | bold | center,
                 searchResultsMenu->Render() | frame | size(HEIGHT, LESS_THAN, 8),
             });
-
+            
             if (!valid)
             {
                 return vbox({
-                           resultBox,
-                           separator(),
-                           text("No patient selected or not found.") | center | color(Color::Red),
-                       }) |
-                       borderRounded | flex;
+                    resultBox,
+                    separator(),
+                    text("No patient selected or not found.") | center | color(Color::Red),
+                }) |
+                borderRounded | flex;
             }
+
+            GlobalVar::selectedSSN = selected.getSSN();
 
             const Address &addr = selected.getAddress();
             const Date &dob = selected.getDOB();
 
             auto patientDetails = Table({{"Field", "Value"},
+                                         {"SSN", selected.getSSN()},
                                          {"Name", selected.getFirstName() + " " + selected.getLastName()},
                                          {"Gender", std::string(selected.getGender() ? "Male" : "Female")},
                                          {"DOB", to_string(dob.d) + "/" + to_string(dob.m) + "/" + to_string(dob.y)},
