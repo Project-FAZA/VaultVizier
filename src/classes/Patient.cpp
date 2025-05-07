@@ -23,7 +23,7 @@ string validateField(const string &field, int maxLength, const string &fieldName
 {
     if (field.empty() || field.length() > maxLength)
     {
-        std::cerr << "Invalid " << fieldName << ".\n";
+        // cerr << "Invalid " << fieldName << ".\n";
         return "Unknown";
     }
     return field;
@@ -80,7 +80,7 @@ bool validatePhoneNumber(const string &phone)
     return true;
 }
 
-Patient::Patient(const std::string &firstName, const std::string &lastName, const Date &dob, const Address &address)
+Patient::Patient(const string &firstName, const string &lastName, const Date &dob, const Address &address)
     : firstName(firstName), lastName(lastName), dob(dob), address(address) {}
 
 Patient::Patient()
@@ -103,7 +103,7 @@ void Patient::setFirstName(const string &fname)
 {
     if (fname.empty() || fname.length() > 20)
     {
-        std::cerr << "Invalid first name. Must be 1-20 characters.\n";
+        // cerr << "Invalid first name. Must be 1-20 characters.\n";
         firstName = "Unknown";
     }
     else
@@ -116,7 +116,7 @@ void Patient::setLastName(const string &lname)
 {
     if (lname.empty() || lname.length() > 20)
     {
-        std::cerr << "Invalid last name. Must be 1-20 characters.\n";
+        // cerr << "Invalid last name. Must be 1-20 characters.\n";
         lastName = "Unknown";
     }
     else
@@ -133,7 +133,7 @@ void Patient::setDOB(const Date &date)
     }
     else
     {
-        std::cerr << "Invalid date of birth. Setting to default 01/01/2000.\n";
+        // cerr << "Invalid date of birth. Setting to default 01/01/2000.\n";
         dob = {1, 1, 2000};
     }
 }
@@ -147,7 +147,7 @@ void Patient::setAddress(const Address &addr)
     address.country = validateField(addr.country, 25, "Country name");
     if (addr.zipCode.empty() || addr.zipCode.length() != 5 || !isAllDigits(addr.zipCode))
     {
-        std::cerr << "Invalid Zip Code. It must be exactly 5 digits.\n";
+        // cerr << "Invalid Zip Code. It must be exactly 5 digits.\n";
         address.zipCode = "Unknown";
     }
     else
@@ -169,7 +169,7 @@ void Patient::setPhoneNumber(const string &num)
     }
     else
     {
-        std::cerr << "Invalid phone number.\n Expected format: +92-300-1234567 or 923001234567.\n Setting to default.\n";
+        // cerr << "Invalid phone number.\n Expected format: +92-300-1234567 or 923001234567.\n Setting to default.\n";
         phoneNumber = "+00-000-000000";
     }
 }
@@ -178,7 +178,7 @@ void Patient::setHeight(const float &h)
 {
     if (h <= 0)
     {
-        std::cerr << "Invalid height value. Setting to 0.\n";
+        // cerr << "Invalid height value. Setting to 0.\n";
         height = 0.0f;
     }
     else
@@ -191,7 +191,7 @@ void Patient::setWeight(const float &w)
 {
     if (w <= 0)
     {
-        std::cerr << "Invalid weight value. Setting to 0.\n";
+        // cerr << "Invalid weight value. Setting to 0.\n";
         weight = 0.0f;
     }
     else
@@ -208,7 +208,7 @@ void Patient::setMaritalStatus(const int &married)
     }
     else
     {
-        std::cerr << "Invalid Marital Status. Setting to single\n";
+        // cerr << "Invalid Marital Status. Setting to single\n";
         maritalStatus = 0;
     }
 }
@@ -272,7 +272,7 @@ void Patient::save()
     ofstream tempFile(tempFileName);
     if (!tempFile.is_open())
     {
-        cerr << "Error: Unable to open temporary file for writing." << endl;
+        // cerr << "Error: Unable to open temporary file for writing." << endl;
         return;
     }
 
@@ -288,15 +288,15 @@ void Patient::save()
     tempFile.close();
 
     // Replace the original file with the temp file
-    if (std::remove("patients.csv") != 0)
+    if (remove("patients.csv") != 0)
     {
-        cerr << "Error: Could not remove original file." << endl;
+        // cerr << "Error: Could not remove original file." << endl;
         return;
     }
 
-    if (std::rename(tempFileName.c_str(), "patients.csv") != 0)
+    if (rename(tempFileName.c_str(), "patients.csv") != 0)
     {
-        cerr << "Error: Could not rename temporary file." << endl;
+        // cerr << "Error: Could not rename temporary file." << endl;
         return;
     }
 }
@@ -308,7 +308,7 @@ bool Patient::alreadyExists(const string ssnToFind)
 
     if (!file.is_open())
     {
-        cerr << "Error: Unable to open file." << endl;
+        // cerr << "Error: Unable to open file." << endl;
         return false;
     }
 
@@ -340,7 +340,7 @@ vector<Patient> Patient::fetchAll()
 
     if (!file.is_open())
     {
-        cerr << "Error: Unable to open file." << endl;
+        // cerr << "Error: Unable to open file." << endl;
         return {};
     }
 
@@ -397,7 +397,7 @@ Patient Patient::fetch(string ssnToFind)
 
     if (!file.is_open())
     {
-        cerr << "Error: Unable to open file." << endl;
+        // cerr << "Error: Unable to open file." << endl;
         return Patient(); // Return default patient if file can't be opened
     }
 
