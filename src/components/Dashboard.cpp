@@ -22,7 +22,7 @@ int numOfDots(string s)
 
 void Dashboard(ScreenInteractive &screen, ScreenStatus *status)
 {
-    vector<string> tabTitles = {"Add Patient", "View Patient", "Settings", "Preferences"};
+    vector<string> tabTitles = {"Add Patient", "View Patient", "Request", "Settings", "Preferences"};
     int selectedTab = 0;
     /* ====================================================================================== */
     /* ADD PT                                                                                 */
@@ -153,7 +153,7 @@ void Dashboard(ScreenInteractive &screen, ScreenStatus *status)
                                     &street, &city, &state, &zipCode, &country,
                                     &phoneNumber, &weight, &height, &genderSelected, &maritalStatusSelected);
                                 
-                                return vbox({
+                                auto seq1 = vbox({
                                             text("Patient Registration Form") | bold | center | border,
                                             separator(),
                                             vbox({text("Personal Info") | bold,
@@ -187,9 +187,12 @@ void Dashboard(ScreenInteractive &screen, ScreenStatus *status)
                                                 borderRounded,
 
                                             submitButton->Render() | center,
-                                            text(msg) | color(Color::Yellow) | center,
                                         }) |
-                                        borderRounded | flex | hcenter; });
+                                        borderRounded | flex | hcenter; 
+                                    
+                                    
+                                        return vbox(seq1, text(msg) | color(Color::Yellow) | center); });
+
     /* ====================================================================================== */
     /* VIEW PT                                                                                */
     /* ====================================================================================== */
@@ -235,7 +238,7 @@ void Dashboard(ScreenInteractive &screen, ScreenStatus *status)
 
     // Combine all into one container
     auto viewPatientContainer = Container::Vertical({searchInput,
-                                                     searchButton, editButton,
+                                                     Container::Horizontal({searchButton, editButton}),
                                                      searchResultsMenu});
 
     Component viewPatientTabUI = Renderer(viewPatientContainer, [&]
@@ -261,9 +264,8 @@ void Dashboard(ScreenInteractive &screen, ScreenStatus *status)
 
             auto resultBox = vbox({
                 text("Search Patient") | bold | center,
-                searchInput->Render(),
-                searchButton->Render() | center,
-                editButton->Render() | center,
+                searchInput->Render() | flex,
+                hbox({searchButton->Render(), editButton->Render()}) | center,
                 text(GlobalVar::selectedSSN),
                 separator(),
                 text("Results") | bold | center,
@@ -314,6 +316,54 @@ void Dashboard(ScreenInteractive &screen, ScreenStatus *status)
                    borderRounded | flex; });
     // END
 
+    /* ====================================================================================== */
+    /* REQUEST PT                                                                                */
+    /* ====================================================================================== */
+    string reqSSN, reqEq;
+    auto reqSSNInput = Input(&reqSSN, "SSN", inputOption());
+    auto reqEqInput = Input(&reqEq, "Equipment Needed", inputOption());
+    auto reqButton = Button("Submit Request", [&]
+                            {
+                                if (reqSSN.empty() || reqEq.empty())
+                                {
+                                    msg = "All fields must be filled out!";
+                                    return;
+                                }
+                                
+                                if (Request::alreadyExists(reqSSN, reqEq)) 
+                                {
+                                    msg = "Request already exists";
+                                    return;
+                                }
+
+                                if (!Patient::alreadyExists(reqSSN)) 
+                                {
+                                    msg = "Patient not found";
+                                    return;
+                                }
+
+                                Request r(reqSSN, reqEq);
+                                r.save();
+
+                                // Logic to handle the request submission
+                                msg = "Request submitted successfully for SSN: " + reqSSN; });
+
+    auto requestPatientContainer = Container::Vertical({reqSSNInput,
+                                                        reqEqInput,
+                                                        reqButton});
+
+    Component requestPatientTabUI = Renderer(requestPatientContainer, [&]
+                                             { return vbox({
+                                                          text("Request Patient Equipment") | flex | bold | center,
+                                                          separator(),
+                                                          reqSSNInput->Render() | flex,
+                                                          reqEqInput->Render() | flex,
+                                                          reqButton->Render() | flex | center,
+                                                          text(msg) | flex | color(Color::Yellow) | center,
+                                                      }) |
+                                                      borderRounded | flex | center; });
+    // END
+
     // Tab 2: Settings
     std::string username;
     bool notifications = false;
@@ -336,6 +386,7 @@ void Dashboard(ScreenInteractive &screen, ScreenStatus *status)
     // Tab container: Shows the appropriate UI
     Component content = Container::Tab({add_p,
                                         viewPatientTabUI,
+                                        requestPatientTabUI,
                                         tab2,
                                         tab3},
                                        &selectedTab);
