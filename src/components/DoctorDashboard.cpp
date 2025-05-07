@@ -1,6 +1,37 @@
 #include "components.hpp"
 #include "../classes/GlobalVars.hpp"
 
+void updateList(const vector<Request> &requests, vector<string> &displayList)
+{
+    // Clear the current display list
+    displayList.clear();
+
+    // Populate the display list with formatted strings
+    for (const auto &req : requests)
+    {
+        std::string status;
+        switch (req.getReqStatus())
+        {
+        case -1:
+            status = "Rejected";
+            break;
+        case 0:
+            status = "Pending";
+            break;
+        case 1:
+            status = "Accepted";
+            break;
+        default:
+            status = "Unknown";
+            break;
+        }
+
+        displayList.push_back("Patient ID: " + req.getPatientId() +
+                              " | Equipment ID: " + req.getEquipmentId() +
+                              " | Status: " + status);
+    }
+}
+
 void DoctorDashboard(ScreenInteractive &screen, ScreenStatus *status)
 {
     using namespace ftxui;
@@ -11,48 +42,56 @@ void DoctorDashboard(ScreenInteractive &screen, ScreenStatus *status)
     /* ====================================================================================== */
     /* SIGN PATIENT (TODO Placeholder)                                                       */
     /* ====================================================================================== */
-    Component signPatientTab = Renderer([]
-                                        { return vbox({text("Sign Patient") | bold | center,
-                                                       separator(),
-                                                       text("TODO: Implement signing patient records.") | color(Color::Yellow) | center}) |
-                                                 border | flex; });
+
+    std::vector<Request> patientRequests = Request::fetchAll();
+    int selectedRequest = 0;
+
+    vector<string> reqDisplayList;
+
+    auto requestMenu = Menu(&reqDisplayList, &selectedRequest);
+    updateList(patientRequests, reqDisplayList);
+
+    auto refreshButton = Button("Refresh Requests", [&]
+                                {
+                                    // Clear the list before fetching
+                                    patientRequests.clear();
+
+                                    // Fetch all requests (replace with your implementation logic)
+                                    patientRequests = Request::fetchAll(); // Assuming this returns a vector of Request objects
+
+                                    updateList(patientRequests, reqDisplayList); });
+
+    auto signPatientTab = Container::Vertical({requestMenu, refreshButton});
+
+    Component signPatientTabUI = Renderer(signPatientTab, [&]
+                                          { return vbox({requestMenu->Render() | center,
+                                                         refreshButton->Render() | center}) |
+                                                   flex; });
 
     /* ====================================================================================== */
     /* SETTINGS TAB                                                                           */
     /* ====================================================================================== */
     std::string username;
     bool notifications = false;
-    auto settingsTab = Container::Vertical({
+    auto settingsTabUI = Container::Vertical({
         Input(&username, "Username", inputOption()),
         Checkbox("Enable notifications", &notifications),
     });
-
-    Component settingsTabUI = Renderer(settingsTab, [&]
-                                       { return vbox({text("Settings") | bold | center,
-                                                      separator(),
-                                                      settingsTab->Render()}) |
-                                                border | flex; });
 
     /* ====================================================================================== */
     /* PREFERENCES TAB                                                                        */
     /* ====================================================================================== */
     bool compactView = true;
-    auto preferencesTab = Container::Vertical({
+    auto preferencesTabUI = Container::Vertical({
         Checkbox("Dark Mode (Light Mode not recommended)", &GlobalVar::darkMode),
         Checkbox("Compact View", &compactView),
     });
-
-    Component preferencesTabUI = Renderer(preferencesTab, [&]
-                                          { return vbox({text("Preferences") | bold | center,
-                                                         separator(),
-                                                         preferencesTab->Render()}) |
-                                                   border | flex; });
 
     // Tab selector menu
     auto tabSelector = Menu(&tabTitles, &selectedTab);
 
     // Tab content container
-    Component tabContent = Container::Tab({signPatientTab,
+    Component tabContent = Container::Tab({signPatientTabUI,
                                            settingsTabUI,
                                            preferencesTabUI},
                                           &selectedTab);
