@@ -391,10 +391,19 @@ void Dashboard(ScreenInteractive &screen, ScreenStatus *status)
                                         tab3},
                                        &selectedTab);
 
-    Component tabSelectorWindow = Renderer(tabSelector, [&]
-                                           { return window(text("Menu") | bold, tabSelector->Render() | vscroll_indicator | frame) | color(GlobalVar::getColor()) | bgcolor(GlobalVar::getBg()); });
+    auto logOutButton = Button("Log Out", [&]
+                               {
+                                *status = ScreenStatus::LOGIN;
+                                screen.Exit(); });
+
+    Component tabSelectorWindow = Renderer(Container::Vertical({tabSelector, logOutButton}), [&]
+                                           { return window(text("Menu") | bold, vbox({tabSelector->Render() | vscroll_indicator | frame, logOutButton->Render()})) | color(GlobalVar::getColor()) | bgcolor(GlobalVar::getBg()); });
     Component contentWindow = Renderer(content, [&]
-                                       { return window(text(tabTitles[selectedTab]) | bold, content->Render() | frame | flex) | color(GlobalVar::getColor()) | bgcolor(GlobalVar::getBg()); });
+                                       { return window(text(tabTitles[selectedTab]) | bold, vbox({
+                                                                                                content->Render(),
+                                                                                            }) | frame |
+                                                                                                flex) |
+                                                color(GlobalVar::getColor()) | bgcolor(GlobalVar::getBg()); });
 
     // Combine menu and dynamic content
     Component app = Container::Horizontal({tabSelectorWindow,
