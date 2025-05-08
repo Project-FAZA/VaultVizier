@@ -33,7 +33,7 @@ void CreateAcc(ScreenInteractive &screen, ScreenStatus *status)
         } else {
             AuthUser::create(username, password, roleIndex);
             // msg = "Account created successfully!";
-            *status = LOGIN; // Return to login screen after account creation
+            
             screen.Exit();
         } });
 
