@@ -46,6 +46,8 @@ private:
     float weight;       // kg
     float height;       // ft
     int maritalStatus;  //{-1 = widowed, 0 = single, 1 = married}
+    bool medicare;      // true if patient has Medicare
+    bool medicaid;      // true if patient has Medicaid
 
 public:
     Patient(const string &fname, const string &lname, const Date &date, const Address &addr);
@@ -72,6 +74,7 @@ public:
     void setWeight(const float &w);
     void setHeight(const float &h);
     void setMaritalStatus(const int &married);
+    void setInsurance(const bool &medicare, const bool &medicaid);
 
     // Getters
     string getSSN() const;
@@ -84,6 +87,7 @@ public:
     float getHeight() const;
     float getWeight() const;
     int getMaritalStatus() const;
+    pair<bool, bool> getInsurance() const;
 
     // adds/updates to actual database
     string toCSV() const;

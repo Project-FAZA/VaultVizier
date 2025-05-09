@@ -87,6 +87,11 @@ void Dashboard(ScreenInteractive &screen, ScreenStatus *status)
     auto heightInput = Input(&height, "Height (cm)", inputOption()) | floatEventH;
     auto maritalStatusInput = Toggle(&maritalStatusList, &maritalStatusSelected);
 
+    bool medicare = false;
+    bool medicaid = false;
+
+    auto insuranceInput = Container::Horizontal({Checkbox("Medicare", &medicare), Checkbox("Medicaid", &medicaid)});
+
     auto submitButton = Button("Submit", [&]
                                {
             if (ssn.empty() || firstName.empty() || lastName.empty() ||
@@ -122,6 +127,7 @@ void Dashboard(ScreenInteractive &screen, ScreenStatus *status)
                 patient.setWeight(stof(weight));
                 patient.setHeight(stof(height));
                 patient.setMaritalStatus(maritalStatusSelected - 1);
+                patient.setInsurance(medicare, medicaid);
 
                 patient.save();
                 msg = "Patient Registered Successfully!";
@@ -141,7 +147,7 @@ void Dashboard(ScreenInteractive &screen, ScreenStatus *status)
                                           phoneInput,
                                           genderInput,
                                           weightInput, heightInput,
-                                          maritalStatusInput,
+                                          maritalStatusInput, insuranceInput,
                                           submitButton});
 
     // Decorate the UI
@@ -151,7 +157,7 @@ void Dashboard(ScreenInteractive &screen, ScreenStatus *status)
                                     &ssn, &firstName, &lastName,
                                     &dobDay, &dobMonth, &dobYear,
                                     &street, &city, &state, &zipCode, &country,
-                                    &phoneNumber, &weight, &height, &genderSelected, &maritalStatusSelected);
+                                    &phoneNumber, &weight, &height, &genderSelected, &maritalStatusSelected, &medicare, &medicaid);
                                 
                                 auto seq1 = vbox({
                                             text("Patient Registration Form") | bold | center | border,
@@ -183,7 +189,8 @@ void Dashboard(ScreenInteractive &screen, ScreenStatus *status)
                                                   genderInput->Render(),
                                                   weightInput->Render(),
                                                   heightInput->Render(),
-                                                  maritalStatusInput->Render()}) |
+                                                  maritalStatusInput->Render(),
+                                                  insuranceInput->Render()}) |
                                                 borderRounded,
 
                                             submitButton->Render() | center,
@@ -364,18 +371,21 @@ void Dashboard(ScreenInteractive &screen, ScreenStatus *status)
                                                       borderRounded | flex | center; });
     // END
 
-    // Tab 2: Settings
-    std::string username;
+    /* ====================================================================================== */
+    /* SETTINGS TAB                                                                           */
+    /* ====================================================================================== */
     bool notifications = false;
-    auto tab2 = Container::Vertical({
-        Input(&username, "Username", inputOption()),
+    auto settingsTabUI = Container::Vertical({
+        Renderer([&]
+                 { return text(GlobalVar::currAuthUsername); }),
         Checkbox("Enable notifications", &notifications),
     });
 
-    // Tab 3: Preferences
-    // bool darkMode = false;
+    /* ====================================================================================== */
+    /* PREFERENCES TAB                                                                        */
+    /* ====================================================================================== */
     bool compactView = true;
-    auto tab3 = Container::Vertical({
+    auto preferencesTabUI = Container::Vertical({
         Checkbox("Dark Mode (Light Mode not recommended)", &GlobalVar::darkMode),
         Checkbox("Compact View", &compactView),
     });
@@ -387,8 +397,8 @@ void Dashboard(ScreenInteractive &screen, ScreenStatus *status)
     Component content = Container::Tab({add_p,
                                         viewPatientTabUI,
                                         requestPatientTabUI,
-                                        tab2,
-                                        tab3},
+                                        settingsTabUI,
+                                        preferencesTabUI},
                                        &selectedTab);
 
     auto logOutButton = Button("Log Out", [&]

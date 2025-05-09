@@ -213,6 +213,12 @@ void Patient::setMaritalStatus(const int &married)
     }
 }
 
+void Patient::setInsurance(const bool &medicare, const bool &medicaid)
+{
+    this->medicare = medicare;
+    this->medicaid = medicaid;
+}
+
 string Patient::getSSN() const
 {
     return ssn;
@@ -229,6 +235,11 @@ float Patient::getHeight() const { return height; }
 float Patient::getWeight() const { return weight; }
 int Patient::getMaritalStatus() const { return maritalStatus; }
 
+pair<bool, bool> Patient::getInsurance() const
+{
+    return pair(medicare, medicaid);
+}
+
 string Patient::toCSV() const
 {
     return ssn + "," +
@@ -244,7 +255,9 @@ string Patient::toCSV() const
            (gender ? "1" : "0") + "," +
            to_string(weight) + "," +
            to_string(height) + "," +
-           to_string(maritalStatus);
+           to_string(maritalStatus) + "," +
+           (medicare ? "1" : "0") + "," +
+           (medicaid ? "1" : "0");
 }
 
 void Patient::save()
@@ -277,7 +290,7 @@ void Patient::save()
     }
 
     // Write header
-    tempFile << "ssn,firstname,lastname,d,m,y,street,city,state,zip,country,phone,gender,weight,height,married" << endl;
+    tempFile << "ssn,firstname,lastname,d,m,y,street,city,state,zip,country,phone,gender,weight,height,married,medicare,medicaid" << endl;
 
     // Write patient records
     for (const Patient p : allPatients)
@@ -335,7 +348,7 @@ bool Patient::alreadyExists(const string ssnToFind)
 
 vector<Patient> Patient::fetchAll()
 {
-    GlobalVar::createIfDoesNotExist("patients.csv", "firstname,lastname,d,m,y,street,city,state,zip,country,phone,gender,weight,height,married");
+    GlobalVar::createIfDoesNotExist("patients.csv", "firstname,lastname,d,m,y,street,city,state,zip,country,phone,gender,weight,height,married,medicare,medicaid");
     ifstream file("patients.csv");
 
     if (!file.is_open())
@@ -354,7 +367,7 @@ vector<Patient> Patient::fetchAll()
         string ssn, firstName, lastName;
         string dStr, mStr, yStr;
         string street, city, state, zip, country;
-        string phone, genderStr, weightStr, heightStr, maritalStr;
+        string phone, genderStr, weightStr, heightStr, maritalStr, medicareStr, medicaidStr;
 
         getline(lineStream, ssn, ',');
         getline(lineStream, firstName, ',');
@@ -372,6 +385,8 @@ vector<Patient> Patient::fetchAll()
         getline(lineStream, weightStr, ',');
         getline(lineStream, heightStr, ',');
         getline(lineStream, maritalStr, ',');
+        getline(lineStream, medicareStr, ',');
+        getline(lineStream, medicaidStr, ',');
 
         Date dob = {stoi(dStr), stoi(mStr), stoi(yStr)};
         Address addr = {street, city, state, zip, country};
@@ -379,9 +394,12 @@ vector<Patient> Patient::fetchAll()
         float weight = stof(weightStr);
         float height = stof(heightStr);
         int maritalStatus = stoi(maritalStr);
+        bool medicare = (medicareStr == "1");
+        bool medicaid = (medicaidStr == "1");
 
         // ✅ Use full constructor here
         Patient p(ssn, firstName, lastName, dob, addr, gender, phone, weight, height, maritalStatus);
+        p.setInsurance(medicare, medicaid);
 
         pats.push_back(p);
     }
@@ -392,7 +410,7 @@ vector<Patient> Patient::fetchAll()
 
 Patient Patient::fetch(string ssnToFind)
 {
-    GlobalVar::createIfDoesNotExist("patients.csv", "ssn,firstname,lastname,d,m,y,street,city,state,zip,country,phone,gender,weight,height,married");
+    GlobalVar::createIfDoesNotExist("patients.csv", "ssn,firstname,lastname,d,m,y,street,city,state,zip,country,phone,gender,weight,height,married,medicare,medicaid");
     ifstream file("patients.csv");
 
     if (!file.is_open())
@@ -411,7 +429,7 @@ Patient Patient::fetch(string ssnToFind)
         string ssn, firstName, lastName;
         string dob_dStr, dob_mStr, dob_yStr;
         string add_street, add_city, add_state, add_zipCode, add_country;
-        string phone, genderStr, weightStr, heightStr, marriedStr;
+        string phone, genderStr, weightStr, heightStr, marriedStr, medicareStr, medicaidStr;
 
         getline(lineStream, ssn, ',');
         getline(lineStream, firstName, ',');
@@ -429,6 +447,8 @@ Patient Patient::fetch(string ssnToFind)
         getline(lineStream, weightStr, ',');
         getline(lineStream, heightStr, ',');
         getline(lineStream, marriedStr, ',');
+        getline(lineStream, medicareStr, ',');
+        getline(lineStream, medicaidStr, ',');
 
         if (ssn == ssnToFind)
         {
@@ -438,9 +458,14 @@ Patient Patient::fetch(string ssnToFind)
             float weight = stof(weightStr);
             float height = stof(heightStr);
             int maritalStatus = stoi(marriedStr);
+            bool medicare = (medicareStr == "1");
+            bool medicaid = (medicaidStr == "1");
+
+            Patient p(ssn, firstName, lastName, dob, addr, gender, phone, weight, height, maritalStatus);
+            p.setInsurance(medicare, medicaid);
 
             file.close();
-            return Patient(ssn, firstName, lastName, dob, addr, gender, phone, weight, height, maritalStatus);
+            return p;
         }
     }
 

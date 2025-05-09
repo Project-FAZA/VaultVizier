@@ -18,7 +18,7 @@ void GlobalVar::createIfDoesNotExist(const string &filename, const string &conte
     }
 }
 
-void GlobalVar::assignEditValues(string *ssn, string *firstName, string *lastName, string *dobDay, string *dobMonth, string *dobYear, string *street, string *city, string *state, string *zipCode, string *country, string *phoneNumber, string *weight, string *height, int *genderSelected, int *married)
+void GlobalVar::assignEditValues(string *ssn, string *firstName, string *lastName, string *dobDay, string *dobMonth, string *dobYear, string *street, string *city, string *state, string *zipCode, string *country, string *phoneNumber, string *weight, string *height, int *genderSelected, int *married, bool *medicare, bool *medicaid)
 {
     if (selectedSSN.empty() || !editMode)
         return;
@@ -70,4 +70,10 @@ void GlobalVar::assignEditValues(string *ssn, string *firstName, string *lastNam
 
     if (married)
         *married = selected.getMaritalStatus() + 1;
+
+    if (medicare && medicaid)
+    {
+        *medicare = selected.getInsurance().first;
+        *medicaid = selected.getInsurance().second;
+    }
 }

@@ -16,6 +16,7 @@ public:
 
     static inline bool darkMode = true;
     static inline string selectedSSN = "";
+    static inline string currAuthUsername = "";
     static inline bool editMode = false;
 
     static void createIfDoesNotExist(const string &filename, const string &content);
@@ -24,7 +25,7 @@ public:
         string *firstName, string *lastName,
         string *dobDay, string *dobMonth, string *dobYear,
         string *street, string *city, string *state, string *zipCode, string *country,
-        string *phoneNumber, string *weight, string *height, int *genderSelected, int *married);
+        string *phoneNumber, string *weight, string *height, int *genderSelected, int *married, bool *medicare, bool *medicaid);
 };
 
 #endif
