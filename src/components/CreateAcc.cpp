@@ -9,12 +9,18 @@ void CreateAcc(ScreenInteractive &screen, ScreenStatus *status)
     string username;
     string password;
     string confirmPassword;
+
+    string firstName;
+    string lastName;
+
     string msg = "Create New Account";
 
     vector<string> roleOptions = {"User", "Doctor"};
     int roleIndex = 0;
 
     // Input fields
+    auto firstNameInput = Input(&firstName, "First Name", inputOption());
+    auto lastNameInput = Input(&lastName, "Last Name", inputOption());
     auto usernameInput = Input(&username, "Username", inputOption());
     auto passwordInput = Input(&password, "Password", inputOption(true));
     auto confirmPasswordInput = Input(&confirmPassword, "Confirm Password", inputOption(true));
@@ -24,14 +30,14 @@ void CreateAcc(ScreenInteractive &screen, ScreenStatus *status)
     // Button to trigger account creation
     auto createButton = Button("Create Account", [&]
                                {
-        if (username.empty() || password.empty() || confirmPassword.empty()) {
+        if (username.empty() || password.empty() || confirmPassword.empty() || firstName.empty() || lastName.empty()) {
             msg = "All fields are required";
         } else if (AuthUser::alreadyExists(username)) {
             msg = "User already exists";
         } else if (password != confirmPassword) {
             msg = "Passwords do not match";
         } else {
-            AuthUser::create(username, password, roleIndex);
+            AuthUser::create(username, password, roleIndex, firstName, lastName);
             // msg = "Account created successfully!";
             
             screen.Exit();
@@ -44,6 +50,8 @@ void CreateAcc(ScreenInteractive &screen, ScreenStatus *status)
 
     // Container for inputs and buttons
     auto container = Container::Vertical({
+        firstNameInput,
+        lastNameInput,
         usernameInput,
         passwordInput,
         confirmPasswordInput,
@@ -56,10 +64,12 @@ void CreateAcc(ScreenInteractive &screen, ScreenStatus *status)
                         { return vbox({
                                      text(msg) | bold | center,
                                      separator(),
-                                     hbox(text("Username: "), usernameInput->Render()),
-                                     hbox(text("Password: "), passwordInput->Render()),
-                                     hbox(text("Confirm:  "), confirmPasswordInput->Render()),
-                                     hbox(text("Role:     "), roleSelector->Render()),
+                                     hbox({text("First Name "), separator(), firstNameInput->Render()}),
+                                     hbox({text("Last Name  "), separator(), lastNameInput->Render()}),
+                                     hbox({text("Username   "), separator(), usernameInput->Render()}),
+                                     hbox({text("Password   "), separator(), passwordInput->Render()}),
+                                     hbox({text("Confirm    "), separator(), confirmPasswordInput->Render()}),
+                                     hbox({text("Role       "), separator(), roleSelector->Render()}),
                                      separator(),
                                      hbox(createButton->Render(), filler(), backButton->Render()) | flex | center,
                                  }) |

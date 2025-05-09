@@ -7,18 +7,13 @@ using namespace std;
 
 class AuthUser
 {
-private:
-    string username;
-    string password;
-
 public:
-    string getUsername();
-
     static string encrypt(string p);
     static bool verifyPassword(string username, string inputPassword);
     static bool alreadyExists(string username);
-    static void create(string username, string pw, bool doctor = false);
+    static void create(string username, string pw, bool doctor, string firstName, string lastName);
     static bool isDoctor(string username);
+    static string fetchFullName(string username);
 };
 
 #endif

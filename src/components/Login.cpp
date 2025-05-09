@@ -1,5 +1,6 @@
 #include "components.hpp"
 #include "../classes/AuthUser.hpp"
+#include "../classes/GlobalVars.hpp"
 
 using namespace std;
 
@@ -20,7 +21,7 @@ void Login(ScreenInteractive &screen, ScreenStatus *status)
             if (!AuthUser::alreadyExists(username)) msg = "User does not exist";
             else if (AuthUser::verifyPassword(username, password))
             {
-
+                GlobalVar::currAuthUsername = AuthUser::fetchFullName(username);
                 *status = (AuthUser::isDoctor(username) ? DOCTOR_DASHBOARD : DASHBOARD);
                 screen.Exit();
             }

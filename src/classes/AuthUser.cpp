@@ -3,11 +3,6 @@
 #include <string>
 #include <sstream>
 
-string AuthUser::getUsername()
-{
-    return username;
-}
-
 string AuthUser::encrypt(string p)
 {
     return p;
@@ -60,7 +55,7 @@ bool AuthUser::alreadyExists(string username)
     return false;
 }
 
-void AuthUser::create(string username, string pw, bool doctor)
+void AuthUser::create(string username, string pw, bool doctor, string firstName, string lastName)
 {
     ofstream file;
     file.open("auth.csv", ios::app);
@@ -71,7 +66,7 @@ void AuthUser::create(string username, string pw, bool doctor)
         return;
     }
 
-    file << username << "," << pw << "," << to_string(doctor ? 1 : 0) << endl; // Write CSV line
+    file << username << "," << pw << "," << (doctor ? "1" : "0") << "," << firstName << "," << lastName << endl;
     file.close();
 }
 
@@ -100,4 +95,40 @@ bool AuthUser::isDoctor(string username)
     }
 
     return false;
+}
+
+string AuthUser::fetchFullName(string username)
+{
+    ifstream file("auth.csv");
+    string line;
+
+    if (!file)
+    {
+        cerr << "Error: Unable to open file." << endl;
+        return "";
+    }
+
+    // Read through the file line by line
+    while (getline(file, line))
+    {
+        stringstream ss(line);
+        string user, pw, doctorFlag, firstName, lastName;
+
+        // Parse the CSV line
+        getline(ss, user, ',');
+        getline(ss, pw, ',');
+        getline(ss, doctorFlag, ',');
+        getline(ss, firstName, ',');
+        getline(ss, lastName, ',');
+
+        // If the username matches, return the full name
+        if (user == username)
+        {
+            file.close();
+            return firstName + " " + lastName;
+        }
+    }
+
+    file.close();
+    return ""; // Username not found
 }
