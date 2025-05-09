@@ -8,7 +8,6 @@ Makefile
 # Compiled files
 *.o
 *.out
-*.exe
 
 # IDE/editor files
 .vscode/
