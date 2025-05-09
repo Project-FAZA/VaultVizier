@@ -61,20 +61,46 @@ void DoctorDashboard(ScreenInteractive &screen, ScreenStatus *status)
 
                                     updateList(patientRequests, reqDisplayList); });
 
-    auto signPatientTab = Container::Vertical({requestMenu, refreshButton});
+    auto signButton = Button("Sign Patient", [&]
+                             {
+                                 if (!patientRequests.empty() && selectedRequest >= 0 && selectedRequest < patientRequests.size())
+                                 {
+                                     auto r = patientRequests[selectedRequest];
+                                     Request::sign(r.getPatientId(), r.getEquipmentId(), 1);
+
+                                     patientRequests.clear();
+                                     patientRequests = Request::fetchAll();
+                                     updateList(patientRequests, reqDisplayList);
+                                 } });
+
+    auto rejectButton = Button("Reject Patient", [&]
+                               {
+                                 if (!patientRequests.empty() && selectedRequest >= 0 && selectedRequest < patientRequests.size())
+                                 {
+                                     auto r = patientRequests[selectedRequest];
+                                     Request::sign(r.getPatientId(), r.getEquipmentId(), -1);
+                                     
+                                     patientRequests.clear();
+                                     patientRequests = Request::fetchAll();
+                                     updateList(patientRequests, reqDisplayList);
+                                 } });
+
+    auto signPatientTab = Container::Vertical({requestMenu, Container::Horizontal({refreshButton, signButton, rejectButton})});
 
     Component signPatientTabUI = Renderer(signPatientTab, [&]
                                           { return vbox({requestMenu->Render() | center,
-                                                         refreshButton->Render() | center}) |
+                                                         hbox(refreshButton->Render(),
+                                                              signButton->Render(), rejectButton->Render()) |
+                                                             center}) |
                                                    flex; });
 
     /* ====================================================================================== */
     /* SETTINGS TAB                                                                           */
     /* ====================================================================================== */
-    std::string username;
     bool notifications = false;
     auto settingsTabUI = Container::Vertical({
-        Input(&username, "Username", inputOption()),
+        Renderer([&]
+                 { return text(GlobalVar::currAuthUsername); }),
         Checkbox("Enable notifications", &notifications),
     });
 
@@ -96,9 +122,14 @@ void DoctorDashboard(ScreenInteractive &screen, ScreenStatus *status)
                                            preferencesTabUI},
                                           &selectedTab);
 
+    auto logOutButton = Button("Log Out", [&]
+                               {
+                                *status = ScreenStatus::LOGIN;
+                                screen.Exit(); });
+
     // UI layout with menu and content
-    Component tabSelectorWindow = Renderer(tabSelector, [&]
-                                           { return window(text("Menu") | bold, tabSelector->Render() | vscroll_indicator | frame) | color(GlobalVar::getColor()) | bgcolor(GlobalVar::getBg()); });
+    Component tabSelectorWindow = Renderer(Container::Vertical({tabSelector, logOutButton}), [&]
+                                           { return window(text("Menu") | bold, vbox({tabSelector->Render() | vscroll_indicator | frame, logOutButton->Render()})) | color(GlobalVar::getColor()) | bgcolor(GlobalVar::getBg()); });
 
     Component contentWindow = Renderer(tabContent, [&]
                                        { return window(text(tabTitles[selectedTab]) | bold, tabContent->Render() | frame | flex) | color(GlobalVar::getColor()) | bgcolor(GlobalVar::getBg()); });
