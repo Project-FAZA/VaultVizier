@@ -131,7 +131,7 @@ void Dashboard(ScreenInteractive &screen, ScreenStatus *status)
 
                 patient.save();
                 msg = "Patient Registered Successfully!";
-                *status = ScreenStatus::LOGIN;
+                // *status = ScreenStatus::LOGIN;
                 screen.ExitLoopClosure()();
             }
             catch (...)
