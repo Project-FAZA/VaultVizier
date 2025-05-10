@@ -2,33 +2,37 @@
 #define EQ_HPP
 
 #include <iostream>
+#include <vector>
+
 using namespace std;
 
 class Patient;
 
 class Equipment
 {
-
 private:
     string code;
-    bool requiresMedicare; //if false, then it requires Medicaid
+    string name;           // added name property
+    bool requiresMedicare; // if false, then it requires Medicaid
     double price;
 
-public: 
+public:
+    Equipment(const string &c, const string &n, const bool &reqMed, const double &p);
 
-    Equipment(const string &c, const bool &reqMed, const double &p);
-    //setters
+    // setters
     void setCode(const string &c);
+    void setName(const string &n); // setter for name
     void setRequiresMedicare(const bool &medi);
     void setPrice(const double &p);
 
-    //getters
-    string getCode();
-    bool getRequiresMedicare();
-    double getPrice();
+    // getters
+    string getCode() const;
+    string getName() const; // getter for name
+    bool getRequiresMedicare() const;
+    double getPrice() const;
+    string validateInsurance(bool medicare, bool medicaid, bool equipmentRequiresMedicare, bool equipmentRequiresMedicaid) const;
 
-    double calculateActualPrice(Patient &pt);
-
+    static vector<Equipment> equipments;
 };
 
 #endif
