@@ -23,8 +23,8 @@ public:
 
     void save();
     static bool alreadyExists(string patientId, string equipmentId);
-    static void sign(string patientId, string equipmentId, int sign);
-    static vector<Request> fetchAll();
+    static void sign(string patientId, string equipmentId, int sign, string signedBy);
+    static vector<Request> fetchAll(bool pendingOnly = false);
 
     string getPatientId() const { return patientId; }
     string getEquipmentId() const { return equipmentId; }

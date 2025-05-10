@@ -37,7 +37,7 @@ bool Request::alreadyExists(string patientId, string equipmentId)
     return false;
 }
 
-void Request::sign(string patientId, string equipmentId, int sign)
+void Request::sign(string patientId, string equipmentId, int sign, string signedBy)
 {
     if (sign != -1 && sign != 1)
         return;
@@ -55,12 +55,12 @@ void Request::sign(string patientId, string equipmentId, int sign)
     while (getline(file, line))
     {
         stringstream ss(line);
-        string patient, equipment, reqStatus, signedBy;
+        string patient, equipment, reqStatus, _signedBy;
 
         getline(ss, patient, ',');
         getline(ss, equipment, ',');
         getline(ss, reqStatus, ',');
-        getline(ss, signedBy, ',');
+        getline(ss, _signedBy, ',');
 
         if (patient == patientId && equipment == equipmentId)
         {
@@ -84,7 +84,7 @@ void Request::sign(string patientId, string equipmentId, int sign)
     }
 }
 
-vector<Request> Request::fetchAll()
+vector<Request> Request::fetchAll(bool pendingOnly)
 {
     vector<Request> requests;
     ifstream fin("requests.csv");
@@ -109,7 +109,8 @@ vector<Request> Request::fetchAll()
         req.reqStatus = stoi(reqStatus);
         req.signedBy = signedBy;
 
-        requests.push_back(req);
+        if (!pendingOnly || (pendingOnly && (req.reqStatus == 0)))
+            requests.push_back(req);
     }
 
     return requests;
