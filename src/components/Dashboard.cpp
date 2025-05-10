@@ -387,44 +387,27 @@ void Dashboard(ScreenInteractive &screen, ScreenStatus *status)
     /* VIEW REQUEST PT                                                                        */
     /* ====================================================================================== */
 
-    std::vector<Request> pendingPatientRequests = Request::fetchAll(true);
-    std::vector<Request> dealtPatientRequests = Request::fetchAll();
+    vector<Request> patientRequests = Request::fetchAll();
 
-    int pendingSelectedRequest = 0;
-    int dealtSelectedRequest = 0;
+    Table reqTable = Table({{text("Test")}});
 
-    vector<string> pendingReqDisplayList;
-    vector<string> dealtReqDisplayList;
-
-    auto pendingRequestMenu = Menu(&pendingReqDisplayList, &pendingSelectedRequest);
-    auto dealtRequestMenu = Menu(&dealtReqDisplayList, &dealtSelectedRequest);
-
-    updateList(pendingPatientRequests, pendingReqDisplayList);
-    updateList(dealtPatientRequests, dealtReqDisplayList);
+    updateRequestTable(&reqTable, patientRequests);
 
     auto refreshButton = Button("Refresh Requests", [&]
                                 {
         // Clear the list before fetching
-        pendingPatientRequests.clear();
-        pendingPatientRequests = Request::fetchAll(true);
+        patientRequests.clear();
+        patientRequests = Request::fetchAll();
 
-        dealtPatientRequests.clear();
-        dealtPatientRequests = Request::fetchAll();
+        updateRequestTable(&reqTable, patientRequests); });
 
-        updateList(pendingPatientRequests, pendingReqDisplayList); 
-        updateList(dealtPatientRequests, dealtReqDisplayList); });
-
-    auto viewRequestTab = Container::Vertical({pendingRequestMenu, dealtRequestMenu, refreshButton});
+    auto viewRequestTab = Container::Vertical({refreshButton});
 
     Component viewRequestTabUI = Renderer(viewRequestTab, [&]
-                                          { return vbox({
-                                                       text("Pending") | center | bold,
-                                                       (!pendingReqDisplayList.empty() ? pendingRequestMenu->Render() : text("No Pending Requests")) | borderRounded,
-                                                       text("Dealt") | center | bold,
-                                                       (!dealtReqDisplayList.empty() ? dealtRequestMenu->Render() : text("No Dealt Requests")) | borderRounded,
-                                                       refreshButton->Render() | center,
-                                                   }) |
-                                                   flex_shrink | center; });
+                                          { 
+                                            updateRequestTable(&reqTable, patientRequests);
+                                            return vbox({ reqTable.Render(), refreshButton->Render() }) | center; });
+
     /* ====================================================================================== */
     /* SETTINGS TAB                                                                           */
     /* ====================================================================================== */
