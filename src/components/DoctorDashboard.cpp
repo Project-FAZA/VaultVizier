@@ -1,37 +1,6 @@
 #include "components.hpp"
 #include "../classes/GlobalVars.hpp"
 
-void updateList(const vector<Request> &requests, vector<string> &displayList)
-{
-    // Clear the current display list
-    displayList.clear();
-
-    // Populate the display list with formatted strings
-    for (const auto &req : requests)
-    {
-        std::string status;
-        switch (req.getReqStatus())
-        {
-        case -1:
-            status = "Rejected";
-            break;
-        case 0:
-            status = "Pending";
-            break;
-        case 1:
-            status = "Accepted";
-            break;
-        default:
-            status = "Unknown";
-            break;
-        }
-
-        displayList.push_back("Patient ID: " + req.getPatientId() +
-                              " | Equipment ID: " + req.getEquipmentId() +
-                              " | Status: " + status);
-    }
-}
-
 void DoctorDashboard(ScreenInteractive &screen, ScreenStatus *status)
 {
     using namespace ftxui;
@@ -43,7 +12,7 @@ void DoctorDashboard(ScreenInteractive &screen, ScreenStatus *status)
     /* SIGN PATIENT (TODO Placeholder)                                                       */
     /* ====================================================================================== */
 
-    std::vector<Request> patientRequests = Request::fetchAll();
+    std::vector<Request> patientRequests = Request::fetchAll(true);
     int selectedRequest = 0;
 
     vector<string> reqDisplayList;
@@ -57,7 +26,7 @@ void DoctorDashboard(ScreenInteractive &screen, ScreenStatus *status)
                                     patientRequests.clear();
 
                                     // Fetch all requests (replace with your implementation logic)
-                                    patientRequests = Request::fetchAll(); // Assuming this returns a vector of Request objects
+                                    patientRequests = Request::fetchAll(true); // Assuming this returns a vector of Request objects
 
                                     updateList(patientRequests, reqDisplayList); });
 
@@ -66,10 +35,10 @@ void DoctorDashboard(ScreenInteractive &screen, ScreenStatus *status)
                                  if (!patientRequests.empty() && selectedRequest >= 0 && selectedRequest < patientRequests.size())
                                  {
                                      auto r = patientRequests[selectedRequest];
-                                     Request::sign(r.getPatientId(), r.getEquipmentId(), 1);
+                                     Request::sign(r.getPatientId(), r.getEquipmentId(), 1, GlobalVar::currAuthUsername);
 
                                      patientRequests.clear();
-                                     patientRequests = Request::fetchAll();
+                                     patientRequests = Request::fetchAll(true);
                                      updateList(patientRequests, reqDisplayList);
                                  } });
 
@@ -78,21 +47,21 @@ void DoctorDashboard(ScreenInteractive &screen, ScreenStatus *status)
                                  if (!patientRequests.empty() && selectedRequest >= 0 && selectedRequest < patientRequests.size())
                                  {
                                      auto r = patientRequests[selectedRequest];
-                                     Request::sign(r.getPatientId(), r.getEquipmentId(), -1);
+                                     Request::sign(r.getPatientId(), r.getEquipmentId(), -1, GlobalVar::currAuthUsername);
                                      
                                      patientRequests.clear();
-                                     patientRequests = Request::fetchAll();
+                                     patientRequests = Request::fetchAll(true);
                                      updateList(patientRequests, reqDisplayList);
                                  } });
 
     auto signPatientTab = Container::Vertical({requestMenu, Container::Horizontal({refreshButton, signButton, rejectButton})});
 
     Component signPatientTabUI = Renderer(signPatientTab, [&]
-                                          { return vbox({requestMenu->Render() | center,
+                                          { return vbox({(!reqDisplayList.empty() ? requestMenu->Render() : text("No Pending Requests")) | borderRounded | flex_shrink,
                                                          hbox(refreshButton->Render(),
                                                               signButton->Render(), rejectButton->Render()) |
                                                              center}) |
-                                                   flex; });
+                                                   flex | center; });
 
     /* ====================================================================================== */
     /* SETTINGS TAB                                                                           */
