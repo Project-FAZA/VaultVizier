@@ -22,7 +22,7 @@ int numOfDots(string s)
 
 void Dashboard(ScreenInteractive &screen, ScreenStatus *status)
 {
-    vector<string> tabTitles = {"Add Patient", "View Patient", "Request", "Settings", "Preferences"};
+    vector<string> tabTitles = {"Add Patient", "View Patient", "Add Request", "View Requests", "Settings", "Preferences"};
     int selectedTab = 0;
     /* ====================================================================================== */
     /* ADD PT                                                                                 */
@@ -324,36 +324,48 @@ void Dashboard(ScreenInteractive &screen, ScreenStatus *status)
     // END
 
     /* ====================================================================================== */
-    /* REQUEST PT                                                                                */
+    /* REQUEST PT                                                                             */
     /* ====================================================================================== */
     string reqSSN, reqEq;
     auto reqSSNInput = Input(&reqSSN, "SSN", inputOption());
-    auto reqEqInput = Input(&reqEq, "Equipment Needed", inputOption());
+
+    int selectedEqIndex = 0;
+    vector<string> equipmentNames;
+
+    for (const auto &eq : Equipment::equipments)
+    {
+        equipmentNames.push_back(eq.getName());
+    }
+
+    auto reqEqInput = Dropdown(&equipmentNames, &selectedEqIndex);
+
     auto reqButton = Button("Submit Request", [&]
                             {
-                                if (reqSSN.empty() || reqEq.empty())
-                                {
-                                    msg = "All fields must be filled out!";
-                                    return;
-                                }
-                                
-                                if (Request::alreadyExists(reqSSN, reqEq)) 
-                                {
-                                    msg = "Request already exists";
-                                    return;
-                                }
+        if (reqSSN.empty())
+        {
+            msg = "All fields must be filled out!";
+            return;
+        }
 
-                                if (!Patient::alreadyExists(reqSSN)) 
-                                {
-                                    msg = "Patient not found";
-                                    return;
-                                }
+        reqEq = Equipment::equipments[selectedEqIndex].getCode();
 
-                                Request r(reqSSN, reqEq);
-                                r.save();
+        if (Request::alreadyExists(reqSSN, reqEq))
+        {
+            msg = "Request already exists";
+            return;
+        }
 
-                                // Logic to handle the request submission
-                                msg = "Request submitted successfully for SSN: " + reqSSN; });
+        if (!Patient::alreadyExists(reqSSN))
+        {
+            msg = "Patient not found";
+            return;
+        }
+
+        Request r(reqSSN, reqEq);
+        r.save();
+
+        // Logic to handle the request submission
+        msg = "Request submitted successfully for SSN: " + reqSSN; });
 
     auto requestPatientContainer = Container::Vertical({reqSSNInput,
                                                         reqEqInput,
@@ -371,6 +383,48 @@ void Dashboard(ScreenInteractive &screen, ScreenStatus *status)
                                                       borderRounded | flex | center; });
     // END
 
+    /* ====================================================================================== */
+    /* VIEW REQUEST PT                                                                        */
+    /* ====================================================================================== */
+
+    std::vector<Request> pendingPatientRequests = Request::fetchAll(true);
+    std::vector<Request> dealtPatientRequests = Request::fetchAll();
+
+    int pendingSelectedRequest = 0;
+    int dealtSelectedRequest = 0;
+
+    vector<string> pendingReqDisplayList;
+    vector<string> dealtReqDisplayList;
+
+    auto pendingRequestMenu = Menu(&pendingReqDisplayList, &pendingSelectedRequest);
+    auto dealtRequestMenu = Menu(&dealtReqDisplayList, &dealtSelectedRequest);
+
+    updateList(pendingPatientRequests, pendingReqDisplayList);
+    updateList(dealtPatientRequests, dealtReqDisplayList);
+
+    auto refreshButton = Button("Refresh Requests", [&]
+                                {
+        // Clear the list before fetching
+        pendingPatientRequests.clear();
+        pendingPatientRequests = Request::fetchAll(true);
+
+        dealtPatientRequests.clear();
+        dealtPatientRequests = Request::fetchAll();
+
+        updateList(pendingPatientRequests, pendingReqDisplayList); 
+        updateList(dealtPatientRequests, dealtReqDisplayList); });
+
+    auto viewRequestTab = Container::Vertical({pendingRequestMenu, dealtRequestMenu, refreshButton});
+
+    Component viewRequestTabUI = Renderer(viewRequestTab, [&]
+                                          { return vbox({
+                                                       text("Pending") | center | bold,
+                                                       (!pendingReqDisplayList.empty() ? pendingRequestMenu->Render() : text("No Pending Requests")) | borderRounded,
+                                                       text("Dealt") | center | bold,
+                                                       (!dealtReqDisplayList.empty() ? dealtRequestMenu->Render() : text("No Dealt Requests")) | borderRounded,
+                                                       refreshButton->Render() | center,
+                                                   }) |
+                                                   flex_shrink | center; });
     /* ====================================================================================== */
     /* SETTINGS TAB                                                                           */
     /* ====================================================================================== */
@@ -397,14 +451,15 @@ void Dashboard(ScreenInteractive &screen, ScreenStatus *status)
     Component content = Container::Tab({add_p,
                                         viewPatientTabUI,
                                         requestPatientTabUI,
+                                        viewRequestTabUI,
                                         settingsTabUI,
                                         preferencesTabUI},
                                        &selectedTab);
 
     auto logOutButton = Button("Log Out", [&]
                                {
-                                *status = ScreenStatus::LOGIN;
-                                screen.Exit(); });
+        *status = ScreenStatus::LOGIN;
+        screen.Exit(); });
 
     Component tabSelectorWindow = Renderer(Container::Vertical({tabSelector, logOutButton}), [&]
                                            { return window(text("Menu") | bold, vbox({tabSelector->Render() | vscroll_indicator | frame, logOutButton->Render()})) | color(GlobalVar::getColor()) | bgcolor(GlobalVar::getBg()); });
