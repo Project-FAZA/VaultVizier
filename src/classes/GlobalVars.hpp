@@ -15,6 +15,7 @@ public:
     static inline ftxui::Color getBg() { return darkMode ? ftxui::Color::RGBA(10, 10, 29, 0) : ftxui::Color::RGB(230, 230, 230); }
 
     static inline bool darkMode = true;
+    static inline bool logoColorToggle = true;
     static inline string selectedSSN = "";
     static inline string currAuthUsername = "";
     static inline bool editMode = false;
