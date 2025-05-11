@@ -56,6 +56,7 @@ void updateRequestTable(Table *table, vector<Request> req)
     rows.push_back({text("Patient ID"),
                     text("Equipment ID"),
                     text("Status"),
+                    text("Reason"),
                     text("Signed By")});
 
     // Add rows from the vector of requests
@@ -95,6 +96,7 @@ void updateRequestTable(Table *table, vector<Request> req)
         rows.push_back({text(request.getPatientId()),
                         text(request.getEquipmentId()) | color(Color::BlueLight),
                         text(status) | color(statusColor),
+                        text(request.getReason()) | color(Color::PaleGreen1),
                         text(request.getSignedBy()) | color(Color::Green3)});
     }
 

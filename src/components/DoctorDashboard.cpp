@@ -1,5 +1,6 @@
 #include "components.hpp"
 #include "../classes/GlobalVars.hpp"
+#include "../classes/Patient.hpp"
 
 void DoctorDashboard(ScreenInteractive &screen, ScreenStatus *status)
 {
@@ -34,8 +35,15 @@ void DoctorDashboard(ScreenInteractive &screen, ScreenStatus *status)
                              {
                                  if (!patientRequests.empty() && selectedRequest >= 0 && selectedRequest < patientRequests.size())
                                  {
+                                     
                                      auto r = patientRequests[selectedRequest];
+                                     
+                                     if (!Patient::alreadyExists(r.getPatientId())) return;
+                                     
                                      Request::sign(r.getPatientId(), r.getEquipmentId(), 1, GlobalVar::currAuthUsername);
+
+                                     auto reqP = Patient::fetch(r.getPatientId());
+                                     r.writeToTranscript(Equipment::getEquipment(r.getEquipmentId()).validateInsurance(reqP.getInsurance().first, reqP.getInsurance().second));
 
                                      patientRequests.clear();
                                      patientRequests = Request::fetchAll(true);
@@ -47,6 +55,9 @@ void DoctorDashboard(ScreenInteractive &screen, ScreenStatus *status)
                                  if (!patientRequests.empty() && selectedRequest >= 0 && selectedRequest < patientRequests.size())
                                  {
                                      auto r = patientRequests[selectedRequest];
+
+                                     if (!Patient::alreadyExists(r.getPatientId())) return;
+
                                      Request::sign(r.getPatientId(), r.getEquipmentId(), -1, GlobalVar::currAuthUsername);
                                      
                                      patientRequests.clear();

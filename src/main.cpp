@@ -13,7 +13,11 @@ int main()
 
     while (true)
     {
+#ifdef _WIN32
         system("cls");
+#else
+        system("clear");
+#endif
 
         if (status == ScreenStatus::DASHBOARD)
             Dashboard(screen, &status);
@@ -24,6 +28,10 @@ int main()
         else if (status == ScreenStatus::CREATE_ACC)
             CreateAcc(screen, &status);
 
+#ifdef _WIN32
         system("cls");
+#else
+        system("clear");
+#endif
     }
 }

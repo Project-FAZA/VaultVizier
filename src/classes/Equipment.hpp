@@ -30,9 +30,10 @@ public:
     string getName() const; // getter for name
     bool getRequiresMedicare() const;
     double getPrice() const;
-    string validateInsurance(bool medicare, bool medicaid, bool equipmentRequiresMedicare, bool equipmentRequiresMedicaid) const;
+    string validateInsurance(bool medicare, bool medicaid) const;
 
     static vector<Equipment> equipments;
+    static Equipment getEquipment(const string &c);
 };
 
 #endif

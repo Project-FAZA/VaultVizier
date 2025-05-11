@@ -32,6 +32,8 @@ void CreateAcc(ScreenInteractive &screen, ScreenStatus *status)
                                {
         if (username.empty() || password.empty() || confirmPassword.empty() || firstName.empty() || lastName.empty()) {
             msg = "All fields are required";
+        } else if (username.find(',') != string::npos || password.find(',') != string::npos) {
+            msg = "Username and password cannot contain commas";
         } else if (AuthUser::alreadyExists(username)) {
             msg = "User already exists";
         } else if (password != confirmPassword) {

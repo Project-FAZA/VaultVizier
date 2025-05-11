@@ -26,7 +26,7 @@ ComponentDecorator getCharLimit(string *inputStr, int limit)
                       {
         if (!e.is_character()) return false;
 
-        return !(inputStr->size() <= limit); });
+        return !(inputStr->size() < limit); });
 }
 
 void Dashboard(ScreenInteractive &screen, ScreenStatus *status)
@@ -316,6 +316,7 @@ void Dashboard(ScreenInteractive &screen, ScreenStatus *status)
             const Address &addr = selected.getAddress();
             const Date &dob = selected.getDOB();
 
+            auto insurance = selected.getInsurance();
             auto patientDetails = Table({{"Field", "Value"},
                                          {"SSN", selected.getSSN()},
                                          {"Name", selected.getFirstName() + " " + selected.getLastName()},
@@ -325,7 +326,9 @@ void Dashboard(ScreenInteractive &screen, ScreenStatus *status)
                                          {"City", addr.city},
                                          {"State", addr.state},
                                          {"Zip Code", addr.zipCode},
-                                         {"Country", addr.country}});
+                                         {"Country", addr.country},
+                                         {"Medicare", insurance.first ? "Yes" : "No"},
+                                         {"Medicaid", insurance.second ? "Yes" : "No"}});
 
             patientDetails.SelectRow(0).Border(LIGHT);
             patientDetails.SelectAll().Border(HEAVY);
@@ -348,15 +351,18 @@ void Dashboard(ScreenInteractive &screen, ScreenStatus *status)
     /* ====================================================================================== */
     /* REQUEST PT                                                                             */
     /* ====================================================================================== */
+    string reqMsg = "";
     string reqSSN, reqEq;
     auto reqSSNInput = Input(&reqSSN, "SSN", inputOption());
 
     int selectedEqIndex = 0;
     vector<string> equipmentNames;
+    vector<string> equipmentCodes;
 
     for (const auto &eq : Equipment::equipments)
     {
         equipmentNames.push_back(eq.getName());
+        equipmentCodes.push_back(eq.getCode());
     }
 
     auto reqEqInput = Dropdown(&equipmentNames, &selectedEqIndex);
@@ -365,7 +371,7 @@ void Dashboard(ScreenInteractive &screen, ScreenStatus *status)
                             {
         if (reqSSN.empty())
         {
-            msg = "All fields must be filled out!";
+            reqMsg = "All fields must be filled out!";
             return;
         }
 
@@ -373,21 +379,31 @@ void Dashboard(ScreenInteractive &screen, ScreenStatus *status)
 
         if (Request::alreadyExists(reqSSN, reqEq))
         {
-            msg = "Request already exists";
+            reqMsg = "Request already exists";
             return;
         }
 
         if (!Patient::alreadyExists(reqSSN))
         {
-            msg = "Patient not found";
+            reqMsg = "Patient not found";
             return;
         }
 
-        Request r(reqSSN, reqEq);
+        auto reqP = Patient::fetch(reqSSN);
+        
+        string v = Equipment::getEquipment(equipmentCodes[selectedEqIndex]).validateInsurance(reqP.getInsurance().first, reqP.getInsurance().second);
+        
+        if (v.empty()) 
+        {
+            reqMsg = "Not Eligible";
+            return;
+        }
+
+        Request r(reqSSN, reqEq, 0, "Reason");
         r.save();
 
         // Logic to handle the request submission
-        msg = "Request submitted successfully for SSN: " + reqSSN; });
+        reqMsg = "Request submitted successfully for SSN: " + reqSSN; });
 
     auto requestPatientContainer = Container::Vertical({reqSSNInput,
                                                         reqEqInput,
@@ -400,7 +416,7 @@ void Dashboard(ScreenInteractive &screen, ScreenStatus *status)
                                                           reqSSNInput->Render() | flex,
                                                           reqEqInput->Render() | flex,
                                                           reqButton->Render() | flex | center,
-                                                          text(msg) | flex | color(Color::Yellow) | center,
+                                                          text(reqMsg) | flex | color(Color::Yellow) | center,
                                                       }) |
                                                       borderRounded | flex | center; });
     // END

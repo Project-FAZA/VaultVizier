@@ -47,27 +47,40 @@ double Equipment::getPrice() const
     return price;
 }
 
-string Equipment::validateInsurance(bool medicare, bool medicaid, bool equipmentRequiresMedicare, bool equipmentRequiresMedicaid) const
+string Equipment::validateInsurance(bool medicare, bool medicaid) const
 {
-    if (!medicare)
+    if (requiresMedicare && !medicare)
         return "";
 
-    if (equipmentRequiresMedicare)
+    if (!requiresMedicare && !medicaid)
+        return "";
+
+    if (requiresMedicare)
     {
         if (medicaid)
-            return "100% off (free)";
+            return "100% off (free) | " + to_string(0.0);
         else
-            return "80% off";
+            return "80% off | " + to_string(price * 0.2);
     }
     else
     {
-        if (!medicaid)
-            return "";
-        if (equipmentRequiresMedicaid)
-            return "Paid full price aka 0% off";
+        return "0% off (paid) | " + to_string(price);
     }
 
     return "";
+}
+
+Equipment Equipment::getEquipment(const string &c)
+{
+    for (const auto &equipment : equipments)
+    {
+        if (equipment.getCode() == c)
+        {
+            return equipment;
+        }
+    }
+
+    throw runtime_error("Equipment with the given code not found");
 }
 
 vector<Equipment> Equipment::equipments = {
