@@ -327,6 +327,10 @@ void Dashboard(ScreenInteractive &screen, ScreenStatus *status)
                                          {"State", addr.state},
                                          {"Zip Code", addr.zipCode},
                                          {"Country", addr.country},
+                                         {"Phone Number", selected.getPhoneNumber()},
+                                         {"Weight (kg)", to_string(selected.getWeight())},
+                                         {"Height (ft)", to_string(selected.getHeight())},
+                                         {"Marital Status", selected.getMaritalStatus() == -1 ? "Widowed" : (selected.getMaritalStatus() == 0 ? "Single" : "Married")},
                                          {"Medicare", insurance.first ? "Yes" : "No"},
                                          {"Medicaid", insurance.second ? "Yes" : "No"}});
 
@@ -366,10 +370,12 @@ void Dashboard(ScreenInteractive &screen, ScreenStatus *status)
     }
 
     auto reqEqInput = Dropdown(&equipmentNames, &selectedEqIndex);
+    string reason;
+    auto reasonInput = Input(&reason, "Reason for Request", inputOption());
 
     auto reqButton = Button("Submit Request", [&]
                             {
-        if (reqSSN.empty())
+        if (reqSSN.empty() || reason.empty())
         {
             reqMsg = "All fields must be filled out!";
             return;
@@ -399,14 +405,14 @@ void Dashboard(ScreenInteractive &screen, ScreenStatus *status)
             return;
         }
 
-        Request r(reqSSN, reqEq, 0, "Reason");
+        Request r(reqSSN, reqEq, 0, reason);
         r.save();
 
         // Logic to handle the request submission
         reqMsg = "Request submitted successfully for SSN: " + reqSSN; });
 
     auto requestPatientContainer = Container::Vertical({reqSSNInput,
-                                                        reqEqInput,
+                                                        reasonInput, reqEqInput,
                                                         reqButton});
 
     Component requestPatientTabUI = Renderer(requestPatientContainer, [&]
@@ -414,6 +420,7 @@ void Dashboard(ScreenInteractive &screen, ScreenStatus *status)
                                                           text("Request Patient Equipment") | flex | bold | center,
                                                           separator(),
                                                           reqSSNInput->Render() | flex,
+                                                          reasonInput->Render() | flex,
                                                           reqEqInput->Render() | flex,
                                                           reqButton->Render() | flex | center,
                                                           text(reqMsg) | flex | color(Color::Yellow) | center,
