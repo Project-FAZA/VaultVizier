@@ -34,7 +34,7 @@ bool AuthUser::verifyPassword(string username, string inputPassword)
 
 bool AuthUser::alreadyExists(string username)
 {
-    GlobalVar::createIfDoesNotExist("auth.csv", "username,password,type");
+    GlobalVar::createIfDoesNotExist("auth.csv", "username,password,type,fname,lname");
     ifstream file("auth.csv");
 
     string line;
