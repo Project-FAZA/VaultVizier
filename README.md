@@ -65,6 +65,3 @@ cmake --build .
 - Run a full test after building — especially request & signature flows.
 
 </details>
-
----
-
