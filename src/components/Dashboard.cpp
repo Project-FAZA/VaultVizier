@@ -242,8 +242,13 @@ void Dashboard(ScreenInteractive &screen, ScreenStatus *status)
             int i = 1;
             for (const auto &p : Patient::fetchAll())
             {
-                std::string fullName = p.getSSN() + ". " + p.getFirstName() + " " + p.getLastName();
-                if (fullName.find(searchQuery) != std::string::npos)
+                string fullName = p.getSSN() + ". " + p.getFirstName() + " " + p.getLastName();
+                string lowerFullName = fullName;
+                string lowerSearchQuery = searchQuery;
+                std::transform(lowerFullName.begin(), lowerFullName.end(), lowerFullName.begin(), ::tolower);
+                std::transform(lowerSearchQuery.begin(), lowerSearchQuery.end(), lowerSearchQuery.begin(), ::tolower);
+
+                if (lowerFullName.find(lowerSearchQuery) != std::string::npos)
                 {
                     searchResults.push_back(fullName);
                     i++;
