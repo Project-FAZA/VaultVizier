@@ -412,7 +412,6 @@ void Dashboard(ScreenInteractive &screen, ScreenStatus *status)
         Request r(reqSSN, reqEq, 0, reason);
         r.save();
 
-        // Logic to handle the request submission
         reqMsg = "Request submitted successfully for SSN: " + reqSSN; });
 
     auto requestPatientContainer = Container::Vertical({reqSSNInput,
