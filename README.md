@@ -1,28 +1,74 @@
 # VaultVizier
 
-## (Instructions for Project Members | Will remove later obviously)
+VaultVizier is a C++ terminal-based healthcare request and management system, featuring a user-doctor workflow, authentication, request handling, and digital signature functionality — all built with the **FTXUI** TUI library.
 
-INSTALL CMAKE FROM THE INTERNET
+---
 
-To build the actual program, run in terminal at location of your project folder
+## **Features**
 
-```powershell
-cd build && cmake ..
-```
+- Login authentication system for **Users** and **Doctors**
+- Patient **entry, search, and editing**
+- **Equipment request management** (Users send requests to Doctors)
+- **Signature system** for Doctors (Accept/Reject)
+- **Transcript system** to log signed requests
+- Built with **FTXUI** for a modern terminal UI
+- **Experimental light mode** theme
 
-then run
+---
 
-```powershell
+## **Build Instructions**
+
+### Prerequisites
+
+- CMake
+- A C++ compiler (g++, clang++, MSVC)
+- Git (optional)
+- FTXUI (can be installed via CMake or fetched in your project)
+
+---
+
+### Building the Project
+
+1. Install [CMake](https://cmake.org/download/) if you haven't already.
+2. Open a terminal in your project directory.
+3. Run the following commands:
+
+```bash
+mkdir build
+cd build
+cmake ..
 cmake --build .
 ```
 
-iss ke baad build/Debug folder mai VaultVizier.exe ko run krlena.
+4. Run the executable:
 
-also IGNORE #INCLUDE ERRS UNLESS IF CODE DOESNT COMPILE
+- On Windows:  
+  Navigate to `build/Debug/` and run `VaultVizier.exe`
 
-pichli baar mai nai carry kiya tha.
-**.exe ya build folder upload mat kardena bhai.**
-Make sure to test before uploading
+- On Linux/macOS:  
+  Run `./VaultVizier` from the appropriate build output directory
 
-Nah taaj chahiye nah takht, yeh chahiye done on waqt (shlawg thinks he mirza ghalib)
-OHKAY DATS OLL 🗣️
+---
+
+## **Important Notes**
+
+- Ignore `#include` warnings **unless the code fails to compile.**
+- **Do not upload** the `build/` folder or `.exe` files to GitHub.
+- Always **test the application locally** before pushing.
+
+---
+
+<details>
+<summary>🛠 Project Team Notes (for members only - remove later)</summary>
+
+- Bhai please don’t commit binaries.
+- Run a full test after building — especially request & signature flows.
+- "Nah taaj chahiye nah takht, yeh chahiye done on waqt" — *Shlawg thinks he's Mirza Ghalib.*
+
+</details>
+
+---
+
+## **License**
+
+[Specify your license here — e.g., MIT, GPLv3, etc.]
