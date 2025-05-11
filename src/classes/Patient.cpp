@@ -163,15 +163,7 @@ void Patient::setGender(const bool &sex)
 
 void Patient::setPhoneNumber(const string &num)
 {
-    if (validatePhoneNumber(num))
-    {
-        phoneNumber = num;
-    }
-    else
-    {
-        // cerr << "Invalid phone number.\n Expected format: +92-300-1234567 or 923001234567.\n Setting to default.\n";
-        phoneNumber = "+00-000-000000";
-    }
+    phoneNumber = num;
 }
 
 void Patient::setHeight(const float &h)
