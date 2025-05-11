@@ -20,6 +20,15 @@ int numOfDots(string s)
     return count;
 }
 
+ComponentDecorator getCharLimit(string *inputStr, int limit)
+{
+    return CatchEvent([inputStr, limit](Event e)
+                      {
+        if (!e.is_character()) return false;
+
+        return !(inputStr->size() <= limit); });
+}
+
 void Dashboard(ScreenInteractive &screen, ScreenStatus *status)
 {
     vector<string> tabTitles = {"Add Patient", "View Patient", "Add Request", "View Requests", "Settings", "Preferences"};
@@ -49,9 +58,9 @@ void Dashboard(ScreenInteractive &screen, ScreenStatus *status)
 
     // Input fields
     // Personal
-    auto ssnInput = Input(&ssn, "Social Security Number", inputOption());
-    auto firstNameInput = Input(&firstName, "First Name", inputOption());
-    auto lastNameInput = Input(&lastName, "Last Name", inputOption());
+    auto ssnInput = Input(&ssn, "Social Security Number", inputOption()) | getCharLimit(&ssn, 9);
+    auto firstNameInput = Input(&firstName, "First Name", inputOption()) | getCharLimit(&firstName, 20);
+    auto lastNameInput = Input(&lastName, "Last Name", inputOption()) | getCharLimit(&lastName, 20);
     auto genderInput = Toggle(&genderList, &genderSelected);
 
     // CatchEvent
@@ -78,9 +87,9 @@ void Dashboard(ScreenInteractive &screen, ScreenStatus *status)
     auto streetInput = Input(&street, "Street Address", inputOption());
     auto cityInput = Input(&city, "City", inputOption());
     auto stateInput = Input(&state, "State", inputOption());
-    auto zipInput = Input(&zipCode, "Zip Code", inputOption()) | integerEvent;
+    auto zipInput = Input(&zipCode, "Zip Code (12345)", inputOption()) | integerEvent | getCharLimit(&zipCode, 5);
     auto countryInput = Input(&country, "Country", inputOption());
-    auto phoneInput = Input(&phoneNumber, "Phone Number", inputOption());
+    auto phoneInput = Input(&phoneNumber, "Phone Number (01234567890)", inputOption()) | integerEvent | getCharLimit(&phoneNumber, 11);
 
     // Clinical
     auto weightInput = Input(&weight, "Weight (kg)", inputOption()) | floatEventW;
@@ -103,6 +112,19 @@ void Dashboard(ScreenInteractive &screen, ScreenStatus *status)
                 msg = "All fields must be filled out!";
                 return;
             }
+
+            if (ssn.find(',') != string::npos || firstName.find(',') != string::npos || lastName.find(',') != string::npos ||
+                dobDay.find(',') != string::npos || dobMonth.find(',') != string::npos || dobYear.find(',') != string::npos ||
+                street.find(',') != string::npos || city.find(',') != string::npos || state.find(',') != string::npos ||
+                zipCode.find(',') != string::npos || country.find(',') != string::npos || phoneNumber.find(',') != string::npos ||
+                weight.find(',') != string::npos || height.find(',') != string::npos) 
+            {
+                msg = "Fields must not contain commas!";
+                return;
+            }
+
+            if (ssn.size() < 9) { msg = "Invalid SSN"; return; }
+            if (phoneNumber.size() < 10) { msg = "Invalid Phone Number"; return; }
 
             try
             {
@@ -401,12 +423,20 @@ void Dashboard(ScreenInteractive &screen, ScreenStatus *status)
 
         updateRequestTable(&reqTable, patientRequests); });
 
-    auto viewRequestTab = Container::Vertical({refreshButton});
+    auto clearDoneButton = Button("Clear Done Requests", [&]
+                                  {
+                                      patientRequests.clear();
+                                      Request::clearDone();
+                                      patientRequests = Request::fetchAll();
+                                      updateRequestTable(&reqTable, patientRequests); });
+
+    auto viewRequestTab = Container::Horizontal({refreshButton, clearDoneButton});
 
     Component viewRequestTabUI = Renderer(viewRequestTab, [&]
                                           { 
                                             updateRequestTable(&reqTable, patientRequests);
-                                            return vbox({ reqTable.Render(), refreshButton->Render() }) | center; });
+                                            return vbox({ reqTable.Render(), 
+                                                hbox({refreshButton->Render(), clearDoneButton->Render()}) | center }) | center; });
 
     /* ====================================================================================== */
     /* SETTINGS TAB                                                                           */

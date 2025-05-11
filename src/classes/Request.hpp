@@ -22,9 +22,11 @@ public:
         : patientId(patientId), equipmentId(equipmentId), reqStatus(reqStatus), signedBy(signedBy) {}
 
     void save();
+
     static bool alreadyExists(string patientId, string equipmentId);
     static void sign(string patientId, string equipmentId, int sign, string signedBy);
     static vector<Request> fetchAll(bool pendingOnly = false);
+    static void clearDone();
 
     string getPatientId() const { return patientId; }
     string getEquipmentId() const { return equipmentId; }

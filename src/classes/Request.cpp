@@ -115,3 +115,41 @@ vector<Request> Request::fetchAll(bool pendingOnly)
 
     return requests;
 }
+
+void Request::clearDone()
+{
+    fstream file("requests.csv", ios::in);
+
+    if (!file)
+        return;
+
+    string line;
+    vector<string> lines;
+
+    while (getline(file, line))
+    {
+        stringstream ss(line);
+        string patient, equipment, reqStatus, _signedBy;
+
+        getline(ss, patient, ',');
+        getline(ss, equipment, ',');
+        getline(ss, reqStatus, ',');
+        getline(ss, _signedBy, ',');
+
+        if (reqStatus == "0")
+        {
+            lines.push_back(line); // Only keep if status is 0
+        }
+    }
+
+    file.close();
+
+    ofstream fout("requests.csv", ios::trunc);
+
+    fout << "patient,equipment,signed,signed_by" << endl;
+    for (const auto &l : lines)
+    {
+        fout << l << endl;
+    }
+    fout.close();
+}
