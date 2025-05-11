@@ -295,7 +295,6 @@ void Dashboard(ScreenInteractive &screen, ScreenStatus *status)
                 text("Search Patient") | bold | center,
                 searchInput->Render() | flex,
                 hbox({searchButton->Render(), editButton->Render()}) | center,
-                text(GlobalVar::selectedSSN),
                 separator(),
                 text("Results") | bold | center,
                 searchResultsMenu->Render() | frame | size(HEIGHT, LESS_THAN, 8),
