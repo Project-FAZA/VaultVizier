@@ -63,7 +63,6 @@ cmake --build .
 
 - Bhai please don’t commit binaries.
 - Run a full test after building — especially request & signature flows.
-- "Nah taaj chahiye nah takht, yeh chahiye done on waqt" — *Shlawg thinks he's Mirza Ghalib.*
 
 </details>
 
