@@ -68,6 +68,3 @@ cmake --build .
 
 ---
 
-## **License**
-
-[Specify your license here — e.g., MIT, GPLv3, etc.]
